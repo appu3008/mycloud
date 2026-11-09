@@ -53,6 +53,16 @@ class Settings(BaseSettings):
     # --- Sessions ---
     session_ttl_hours: int = 168            # idle timeout (7 days)
     session_absolute_ttl_hours: int = 2160  # absolute timeout (90 days)
+    session_cookie_name: str = "mycloud_session"
+
+    # --- Login rate limiting / lockout (durable across workers via audit_logs) ---
+    login_max_failed_attempts: int = 5
+    login_lockout_minutes: int = 15
+    login_attempt_window_minutes: int = 15
+
+    # --- First-admin enrollment (section 13: no default credentials) ---
+    allow_registration: bool = False  # invites come in Phase 12
+    admin_marker_file: str = ".admin_initialized"
 
     # --- Uploads ---
     upload_chunk_size_mb: int = 8
