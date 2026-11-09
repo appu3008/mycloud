@@ -1,0 +1,34 @@
+# MyCloud systemd service (EXAMPLE — install with user approval)
+# Copy to /etc/systemd/system/mycloud-backend.service, then:
+#   sudo systemctl daemon-reload && sudo systemctl enable --now mycloud-backend
+# Hardening comments are part of the unit; do not remove flags blindly.
+
+[Unit]
+Description=MyCloud backend (FastAPI/uvicorn)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=appu
+Group=appu
+WorkingDirectory=/home/appu/mycloud/backend
+Environment=MYCLOUD_ENVIRONMENT=production
+ExecStart=/home/appu/mycloud/backend/.venv/bin/uvicorn app.main:app \
+    --host 127.0.0.1 --port 8000 --workers 2
+Restart=on-failure
+RestartSec=5
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/appu/mycloud/storage /home/appu/mycloud/database /home/appu/mycloud/backups
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+MemoryMax=1G
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,19 @@
+# backend/requirements.txt — MyCloud backend dependencies
+# Install into project venv only (PEP 668: system Python is externally managed):
+#   backend/.venv/bin/pip install -r backend/requirements.txt
+
+fastapi>=0.143,<1
+uvicorn[standard]>=0.53,<1
+pydantic>=2.13,<3
+pydantic-settings>=2.6,<3
+SQLAlchemy>=2.0.52,<3
+alembic>=1.18,<2
+argon2-cffi>=25.1,<26
+python-multipart>=0.0.20,<1
+# test/dev
+pytest>=8.4,<9
+pytest-asyncio>=1.2,<2
+httpx>=0.28,<1
+ruff>=0.14,<1
+# Optional performance pin (uses system sqlite; no build step needed on Kali)
+# aiosqlite will be added if async engine is adopted in Phase 3

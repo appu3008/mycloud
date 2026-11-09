@@ -1,0 +1,45 @@
+# Roadmap / task tracker
+
+Completed tasks are checked with the phase that verified them. No phase is
+"complete" until its tests run and pass.
+
+## Phase 1 — foundation (done)
+- [x] Environment inspection (docs/ENVIRONMENT.md)
+- [x] Directory scaffold + module packages
+- [x] Settings via env (no hardcoded secrets)
+- [x] FastAPI skeleton + /api/health (real checks)
+- [x] Docs set (architecture, DB schema, API, security, deployment, backup)
+- [x] .gitignore, .env.example, requirements.txt, systemd example, compose (inert)
+
+## Phase 2 — database & auth
+- [ ] SQLAlchemy models (20 entities) + engine/session factory (WAL, FK on)
+- [ ] Alembic init + first migration
+- [ ] Argon2id hashing, first-admin bootstrap window (no default creds)
+- [ ] Sessions (DB-backed, CSRF token), login rate limiting + lockout
+- [ ] pytest: auth flow, brute-force, session revocation, role checks
+
+## Phase 3 — storage engine
+- [ ] Blob store (sha256 content addressing, refcounts, crash-safe ordering)
+- [ ] Chunked resumable uploads + per-chunk + final checksums + temp GC
+- [ ] Quota enforcement + disk guardrails
+- [ ] pytest: chunk corruption, resume, dedup, quota, traversal
+
+## Phase 4 — file manager frontend
+- [ ] Vite/React/TS scaffold, theming, responsive shell
+- [ ] Files/folders pages wired to real API (upload/download/move/copy/delete/sort/search/multiselect/DnD)
+- [ ] Vitest + integration via backend test server
+
+## Phases 5–17
+- [ ] Media (photos/videos/albums/thumbnails/streaming/EXIF GPS stripping)
+- [ ] Recycle bin + version history (retention policies)
+- [ ] Duplicate detection + savings report
+- [ ] Sharing (tokens, passwords, expiry, limits, revoke)
+- [ ] Devices + sync (conflict-copy, queues, revocation)
+- [ ] Android backup client path (real background caveat documented)
+- [ ] Storage analytics + server monitoring (hwmon, sensors)
+- [ ] Admin console + audit/activity trails
+- [ ] Optional E2E encryption design gate
+- [ ] Backup/restore jobs + external destinations
+- [ ] Security suite (IDOR/traversal/CSRF/rate-limit matrix)
+- [ ] Tailscale connectivity + HTTPS strategy
+- [ ] Production hardening (systemd, proxy, compose once Docker available)

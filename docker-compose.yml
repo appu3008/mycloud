@@ -1,0 +1,26 @@
+# docker-compose.yml — OPTIONAL, currently INERT: Docker is not installed on
+# this host. Do not run until Docker is available and approved. The systemd +
+# reverse-proxy path is the primary deployment (docs/DEPLOYMENT.md).
+#
+# When used, this file is for the app tier only (SQLite volume persists);
+# no external database service is required by design.
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile
+    restart: unless-stopped
+    # Bind loopback on the host; proxy (or tailscale serve) fronts this.
+    ports:
+      - "127.0.0.1:8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./storage:/app/storage
+      - ./database:/app/database
+      - ./backups:/app/backups
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/api/health/ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

@@ -1,0 +1,42 @@
+# --- Secrets / environment ---
+.env
+*.pem
+*.key
+*.keystore
+!docs/**/*.key-example
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+
+# --- Node / frontend ---
+node_modules/
+frontend/dist/
+frontend/coverage/
+.vite/
+
+# --- Runtime data (never commit) ---
+database/*.db
+database/*.db-wal
+database/*.db-shm
+database/*.sqlite3*
+backups/*
+!backups/.gitkeep
+storage/files/
+storage/thumbnails/
+storage/temporary/
+*.log
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+.DS_Store
