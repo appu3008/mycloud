@@ -12,11 +12,16 @@ Completed tasks are checked with the phase that verified them. No phase is
 - [x] .gitignore, .env.example, requirements.txt, systemd example, compose (inert)
 
 ## Phase 2 — database & auth
-- [ ] SQLAlchemy models (20 entities) + engine/session factory (WAL, FK on)
-- [ ] Alembic init + first migration
-- [ ] Argon2id hashing, first-admin bootstrap window (no default creds)
-- [ ] Sessions (DB-backed, CSRF token), login rate limiting + lockout
-- [ ] pytest: auth flow, brute-force, session revocation, role checks
+- [x] SQLAlchemy models (20 entities + album_files) + engine/session factory (WAL, FK on)
+- [x] Alembic init + initial migration (applied to dev database: 22 tables)
+- [x] Argon2id hashing (argon2-cffi, OWASP-aligned params, transparent rehash)
+- [x] First-admin bootstrap window (enrollment marker file, closed after use)
+- [x] DB-backed sessions (hashed tokens, CSRF via X-CSRF-Token, idle+absolute expiry)
+- [x] Login rate limiting + lockout (audit-driven, durable across workers/restarts)
+- [x] Session revocation (own sessions + all-others on password change)
+- [x] Registration endpoint closed (invite tokens arrive Phase 12) — honest 403
+- [x] pytest (10 tests): enrollment, uniform login errors, CSRF, lockout,
+      logout, password-change revocation, session revoke, history, health
 
 ## Phase 3 — storage engine
 - [ ] Blob store (sha256 content addressing, refcounts, crash-safe ordering)

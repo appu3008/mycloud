@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.2.0 — Phase 2 (2026-11-09)
+### Added
+- All 20 database entities (`backend/app/models/`, naming-convention-checkable,
+  CHECK/UNIQUE/FK constraints per DATABASE.md) + engine factory (WAL, FK ON,
+  synchronous=NORMAL on every connect) + health DB probe.
+- Alembic wiring (`backend/migrations/`, project-root-anchored URL from settings)
+  + initial migration applied: 22 tables in `database/mycloud.db`.
+- Argon2id password hashing (OWASP-aligned parameters, transparent rehash), no
+  plaintext ever stored.
+- Security layer: Hashed-at-rest session cookies, CSRF tokens per session
+  (X-CSRF-Token double-submit + Origin check), durable audit-based brute-force
+  lockout (5 fails / 15 min per account + 4x per-IP spray guard), first-admin
+  enrollment window closed by marker file (mode 0600) after use.
+- Auth API (v1): provider/init, login (uniform anti-enumeration error),
+  logout, me, profile update, password change (revokes other sessions),
+  sessions list + revocation, 90-day login history (no secrets), register
+  (closed, honest 403 until Phase 12 invites).
+- pytest suite (10 tests, per-test isolated temp DB/storage): passes.
+
+### Verified
+- Backend boots against the migrated dev DB; `/api/health` reports WAL mode +
+  FK enforced; unauthenticated `/auth/me` = 401; enrollment reports open.
+- ruff clean (B008 ignored as the canonical FastAPI idiom).
+
+### Fixed
+- Failed-login audit rows now commit inside `authenticate` so lockout/history
+  survives 401 request teardown.
+- Unflushed user id in first-admin creation caused FK failures; explicit ids
+  and a flush make ordering deterministic.
+- Relative `MYCLOUD_*` paths and sqlite URLs are resolved against the project
+  root (CWD independent); `backend/storage` stray dirs from earlier test boot
+  removed.
+
 ## 0.1.0 — Phase 1 (2026-11-09)
 ### Fixed
 - `cors_origins` env parsing: annotated with `pydantic-settings` `NoDecode` and a

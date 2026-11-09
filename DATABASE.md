@@ -115,9 +115,19 @@ CHECK(newer_wins|conflict_copy) · `error` TEXT NULL · `attempts` INT ·
 
 ### audit_logs
 `id` INTEGER PK AUTOINCREMENT · `actor_user_id` FK NULL (system events) ·
-`action` TEXT · `target_type`/`target_id` NULL · `ip` NULL · `detail` TEXT
+`actor_email` TEXT NULL (indexed; lockout lookup key) · `actor_ip` TEXT NULL
+(indexed; per-IP spray guard) · `action` TEXT (`auth.login.failed`,
+`auth.login.locked`, …) · `target_type`/`target_id` NULL · `detail` TEXT
 (never secrets/passwords/tokens) · `created_at` Index: (`created_at`),
-(`actor_user_id`). Append-only; deletion only by retention job.
+(`actor_user_id`), (`actor_email`), (`actor_ip`), (`action`). Append-only;
+deletion only by retention job. Login lockout counts query this table
+(durable, multi-worker safe): 5 account failures / 15 min => 15 min lockout;
+per-IP spray cap at 4x the account threshold.
+
+### op request context
+Relative `MYCLOUD_STORAGE_ROOT`, `MYCLOUD_DATA_DIR`, and sqlite `DATABASE_URL`
+values are resolved against the project root at settings validation time, so
+behavior never depends on the process CWD.
 
 ### activity_events
 `id` PK · `user_id` FK (visibility owner) · `kind` CHECK(upload|download|delete|

@@ -41,6 +41,7 @@ class Settings(BaseSettings):
 
     # --- Paths & database ---
     storage_root: Path = PROJECT_ROOT / "storage"
+    data_dir: Path = PROJECT_ROOT / "database"
     database_url: str = f"sqlite:///{PROJECT_ROOT / 'database' / 'mycloud.db'}"
 
     # --- Security ---
@@ -100,6 +101,11 @@ class Settings(BaseSettings):
         # against PROJECT_ROOT so behavior is independent of the CWD.
         return value if value.is_absolute() else (PROJECT_ROOT / value)
 
+    @field_validator("data_dir")
+    @classmethod
+    def _resolve_relative_data_dir(cls, value: Path) -> Path:
+        return value if value.is_absolute() else (PROJECT_ROOT / value)
+
     @field_validator("database_url")
     @classmethod
     def _resolve_relative_database_url(cls, value: str) -> str:
@@ -126,12 +132,12 @@ class Settings(BaseSettings):
         return self.storage_root / "temporary"
 
     def ensure_runtime_dirs(self) -> None:
-        """Create storage/database directories if missing (safe, idempotent)."""
+        """Create storage/data directories if missing (safe, idempotent)."""
         for path in (
             self.files_dir,
             self.thumbnails_dir,
             self.temporary_dir,
-            (PROJECT_ROOT / "database"),
+            self.data_dir,
         ):
             path.mkdir(parents=True, exist_ok=True)
 

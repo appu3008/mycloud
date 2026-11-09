@@ -15,8 +15,6 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from .config import get_settings
 
-_settings = get_settings()
-
 _engine: Engine | None = None
 _sessionmaker: sessionmaker[Session] | None = None
 
@@ -30,18 +28,19 @@ def _apply_sqlite_pragmas(dbapi_conn: Any, _rec: Any) -> None:
 
 
 def get_engine() -> Engine:
-    """Create (once) the application engine from settings."""
+    """Create (once) the application engine from current settings."""
     global _engine, _sessionmaker
     if _engine is None:
-        _engine = _create_engine_from_settings()
+        settings = get_settings()
+        _engine = _create_engine_from_settings(settings)
         _sessionmaker = sessionmaker(bind=_engine, autoflush=False, expire_on_commit=False)
     return _engine
 
 
-def _create_engine_from_settings() -> Engine:
+def _create_engine_from_settings(settings) -> Engine:
     from sqlalchemy import create_engine
 
-    url = _settings.database_url
+    url = settings.database_url
     connect_args: dict[str, Any] = {}
     if url.startswith("sqlite"):
         connect_args["check_same_thread"] = False

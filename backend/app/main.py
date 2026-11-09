@@ -17,7 +17,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
+from .api import auth as auth_api
 from .core.config import get_settings
+from .core.database import database_status
 
 settings = get_settings()
 logger = logging.getLogger("mycloud")
@@ -31,6 +33,7 @@ _docs = {} if settings.is_production else {
 
 
 def create_app() -> FastAPI:
+    settings = get_settings()  # fresh: supports test reconfiguration
     app = FastAPI(
         title="MyCloud",
         description="Self-hosted personal cloud storage and device management",
@@ -64,9 +67,12 @@ def _disk_usage(path: str) -> dict:
 
 
 def register_routes(app: FastAPI) -> None:
+    app.include_router(auth_api.router, prefix="/api/v1")
+
     @app.get("/api/health", tags=["health"])
     def health() -> dict:
-        """Real health report: storage dirs, disk capacity, environment."""
+        """Real health report: storage dirs, disk capacity, database, environment."""
+        settings = get_settings()  # read fresh: tests reconfigure env per test
         errors: list[str] = []
         if not settings.files_dir.is_dir():
             errors.append("storage files dir missing")
@@ -84,6 +90,7 @@ def register_routes(app: FastAPI) -> None:
             "environment": settings.environment,
             "storage_root": str(settings.storage_root),
             "disk": _disk_usage(str(settings.storage_root)),
+            "database": database_status(),
             "errors": errors,
         }
 

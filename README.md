@@ -20,9 +20,9 @@ Frontend lands in Phase 4 (`~/mycloud/frontend`).
 ## Status — phases
 | # | Phase | State |
 |---|---|---|
-| 1 | Foundation: env report, scaffold, docs | **done (this commit)** |
-| 2 | Database models + auth (Argon2id, sessions, CSRF) | pending |
-| 3 | Storage engine (chunked resumable uploads, blobs) | pending |
+| 1 | Foundation: env report, scaffold, docs | **done** |
+| 2 | Database models + auth (Argon2id, sessions, CSRF) | **done** |
+| 3 | Storage engine (chunked resumable uploads, blobs) | in progress |
 | 4 | File manager frontend | pending |
 | 5 | Photo/video system | pending |
 | 6 | Recycle bin + versioning | pending |
