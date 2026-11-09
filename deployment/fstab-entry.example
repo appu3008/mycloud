@@ -1,0 +1,3 @@
+# /etc/fstab entry (add manually with sudo; part of scripts/mount_storage_partition.sh output)
+# Mount spare ext4 partition for MyCloud file storage.
+UUID=267bb988-6945-4a39-a823-f984c38a8698  /mnt/mycloud-storage  ext4  noexec,nosuid,nodev  0  2

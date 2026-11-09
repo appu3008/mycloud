@@ -11,11 +11,13 @@ Changing it to a postgresql:// URL later is the intended migration path
 
 from __future__ import annotations
 
+import json
 from functools import lru_cache
 from pathlib import Path
+from typing import Annotated
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 # Project root = parent of backend/
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[3]
@@ -43,7 +45,9 @@ class Settings(BaseSettings):
 
     # --- Security ---
     secret_key: str = ""
-    cors_origins: list[str] = Field(default_factory=lambda: ["http://127.0.0.1:5173"])
+    cors_origins: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: ["http://127.0.0.1:5173"]
+    )
     cookie_secure: bool = False
 
     # --- Sessions ---
@@ -60,6 +64,17 @@ class Settings(BaseSettings):
 
     # --- Quotas ---
     default_quota_mb: int = 20480
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def _parse_cors_origins(cls, value: object) -> list[str] | object:
+        # Env value may be JSON (["..",".."]) or comma separated ("a,b").
+        if isinstance(value, str):
+            stripped = value.strip()
+            if stripped.startswith("["):
+                return json.loads(stripped)
+            return [item.strip() for item in stripped.split(",") if item.strip()]
+        return value
 
     @field_validator("secret_key")
     @classmethod
