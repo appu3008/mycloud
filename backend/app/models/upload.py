@@ -45,7 +45,7 @@ class Upload(TimestampMixin, Base):
     client_upload_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
 
-    chunks: Mapped[list["UploadChunk"]] = relationship(  # noqa: F821
+    chunks: Mapped[list[UploadChunk]] = relationship(
         back_populates="upload", cascade="all, delete-orphan"
     )
 

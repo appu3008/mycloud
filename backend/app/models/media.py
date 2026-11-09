@@ -68,7 +68,7 @@ class Album(TimestampMixin, Base):
         ForeignKey("files.id", name="cover_file_id", ondelete="SET NULL"), nullable=True
     )
 
-    files: Mapped[list["AlbumFile"]] = relationship(
+    files: Mapped[list[AlbumFile]] = relationship(
         back_populates="album", cascade="all, delete-orphan"
     )
 

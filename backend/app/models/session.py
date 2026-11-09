@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import uuid
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String
@@ -53,4 +52,4 @@ class Session(TimestampMixin, Base):
     abs_expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
-    user: Mapped["User"] = relationship(viewonly=True)  # noqa: F821
+    user: Mapped[User] = relationship(viewonly=True)  # noqa: F821
