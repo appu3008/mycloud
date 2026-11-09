@@ -83,6 +83,22 @@ class Settings(BaseSettings):
         # by the security layer before any login succeeds.
         return value
 
+    @field_validator("storage_root")
+    @classmethod
+    def _resolve_relative_paths(cls, value: Path) -> Path:
+        # ".env may specify paths relative to the project root; resolve them
+        # against PROJECT_ROOT so behavior is independent of the CWD.
+        return value if value.is_absolute() else (PROJECT_ROOT / value)
+
+    @field_validator("database_url")
+    @classmethod
+    def _resolve_relative_database_url(cls, value: str) -> str:
+        # sqlite:///relative/path.db must also be project-root anchored.
+        prefix = "sqlite:///"
+        if value.startswith(prefix) and not value[len(prefix):].startswith("/"):
+            return f"{prefix}{PROJECT_ROOT / value[len(prefix):]}"
+        return value
+
     @property
     def is_production(self) -> bool:
         return self.environment == "production"
