@@ -18,7 +18,7 @@ from pathlib import Path
 
 def run(cmd: str) -> str:
     try:
-        out = subprocess.run(cmd.split(), capture_output=True, text=True, timeout=10)
+        out = subprocess.run(cmd.split(), capture_output=True, text=True, timeout=10, check=False)
         return (out.stdout.strip() or out.stderr.strip() or "(none)")
     except FileNotFoundError:
         return "(not installed)"

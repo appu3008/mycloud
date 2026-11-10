@@ -12,7 +12,9 @@ python3 scripts/generate_secret.py          # paste MYCLOUD_SECRET_KEY into .env
 cp .env.example .env
 python3 -m venv backend/.venv               # dependency plan approved first
 backend/.venv/bin/pip install -r backend/requirements.txt
-backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --app-dir backend
+cd backend && .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+# second terminal:
+python3 ../scripts/enroll_admin.py 8000     # interactive; prompts (no shell history)
 # http://127.0.0.1:8000/api/health
 ```
 Frontend lands in Phase 4 (`~/mycloud/frontend`).
