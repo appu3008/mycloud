@@ -119,3 +119,36 @@ def file_metadata(
     user, _ = auth
     file_row, _blob = _load_owned_file(db, user.id, file_id)
     return FileInfo.model_validate(file_row)
+
+
+@router.get("")
+def list_files(
+    folder_id: str | None = None,
+    search: str | None = None,
+    sort: str = "name",
+    order: str = "asc",
+    page: int = 0,
+    page_size: int = 50,
+    auth: tuple[User, SessionRow] = Depends(get_current_auth),
+    db: SAMSession = Depends(get_db),
+) -> dict:
+    """Folder listing (root when folder_id omitted), ownership-scoped."""
+    user, _ = auth
+    # Ownership check happens inside folder_owned for non-root folders.
+    file_service.folder_owned(db, user_id=user.id, folder_id=folder_id)
+    page_size = max(1, min(page_size, 200))
+    rows, total = file_service.list_folder_files(
+        db,
+        user_id=user.id,
+        folder_id=folder_id,
+        limit=page_size,
+        offset=page * page_size,
+        sort=sort,
+        order=order,
+    )
+    return {
+        "items": [FileInfo.model_validate(row).model_dump() for row in rows],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+    }

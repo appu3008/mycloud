@@ -1,0 +1,109 @@
+.upload-tray {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.upload-row {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.upload-row.completed { border-color: color-mix(in srgb, #22c55e 45%, var(--border)); }
+.upload-row.failed { border-color: var(--danger); }
+
+.upload-meta {
+  display: flex;
+  gap: 10px;
+  min-width: 220px;
+  max-width: 380px;
+}
+
+.upload-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.upload-size { color: var(--muted); font-size: 12px; }
+
+.upload-row progress { flex: 1; width: 100%; }
+
+.files-table {
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+}
+
+.files-table th, .files-table td {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.files-table th {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.files-table tbody tr:last-child td { border-bottom: 0; }
+
+.row-actions { text-align: right; }
+
+.empty-cell {
+  color: var(--muted);
+  padding: 26px 14px;
+  text-align: center;
+}
+
+.table-footer { color: var(--muted); font-size: 12px; margin-top: 8px; }
+
+.page-error {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.card-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .6px; }
+.card-value { font-size: 20px; font-weight: 700; margin: 6px 0; }
+.card-sub { color: var(--muted); font-size: 12px; }
+
+.recent-list { list-style: none; padding: 0; margin: 0; }
+.recent-list li {
+  display: flex;
+  justify-content: space-between;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 14px;
+  margin-bottom: 6px;
+}
