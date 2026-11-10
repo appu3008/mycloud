@@ -69,6 +69,21 @@ def _disk_usage(path: str) -> dict:
 def register_routes(app: FastAPI) -> None:
     app.include_router(auth_api.router, prefix="/api/v1")
 
+    @app.get("/", include_in_schema=False)
+    def index() -> dict:
+        """Friendly root so manual probing points at real paths, not 404s."""
+        return {
+            "service": "MyCloud API",
+            "health": "/api/health",
+            "enrollment": "/api/v1/auth/provider/init/status",
+            "docs": "/api/docs" if not settings.is_production else None,
+        }
+
+    @app.get("/health", include_in_schema=False)
+    def health_alias() -> dict:
+        """Convenience alias; canonical path is /api/health."""
+        return health()
+
     @app.get("/api/health", tags=["health"])
     def health() -> dict:
         """Real health report: storage dirs, disk capacity, database, environment."""
