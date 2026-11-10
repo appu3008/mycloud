@@ -25,6 +25,11 @@ def app_env(tmp_path: Path):
         "MYCLOUD_LOGIN_LOCKOUT_MINUTES": "15",
         "MYCLOUD_SESSION_TTL_HOURS": "168",
         "MYCLOUD_SESSION_ABSOLUTE_TTL_HOURS": "2160",
+        # Test temp dirs often sit on a small tmpfs; keep real guardrails
+        # for production envs but relax thresholds so tests exercise logic.
+        "MYCLOUD_MIN_FREE_SPACE_MB": "64",
+        "MYCLOUD_DISK_USAGE_LIMIT_PCT": "99",
+        "MYCLOUD_DEFAULT_QUOTA_MB": "256",
     }
     os.environ.update(env)
     _reset_cached_state()
