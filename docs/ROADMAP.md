@@ -29,6 +29,18 @@ Completed tasks are checked with the phase that verified them. No phase is
 - [ ] Quota enforcement + disk guardrails
 - [ ] pytest: chunk corruption, resume, dedup, quota, traversal
 
+## Phase 3 — storage engine (done)
+- [x] Content-addressed blob store (sha256 addressing, refcounts, crash-safe
+      put-temp-then-rename, dedup safe across users)
+- [x] Chunked resumable uploads: reserve/chunk/complete/abort/state API,
+      per-chunk SHA-256 (server-verified, idempotent re-PUT), stream-assembly
+      (RAM-bounded staging), final hash integrity
+- [x] Quota enforcement (default per-user on settings, admin per-user rows later)
+- [x] Disk guardrails: 85% cap + minimum reserve; uploads get 507, never delete
+- [x] Filename MIME sniffing (local magic bytes) + traversal-proof naming
+- [x] Files API: metadata, listing, Range/ETag streaming download (RFC 9110)
+- [x] pytest (19 new incl. IDOR guard, dedup refcounts, temp cleanup, range 416s)
+
 ## Phase 4 — file manager frontend
 - [ ] Vite/React/TS scaffold, theming, responsive shell
 - [ ] Files/folders pages wired to real API (upload/download/move/copy/delete/sort/search/multiselect/DnD)

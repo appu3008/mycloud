@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.3.0 — Phase 3 (2026-11-10)
+### Added
+- Content-addressed blob store (`backend/app/storage/blob_store.py`): SHA-256
+  keyed files at `storage/files/aa/ab/<hash>.blob`, refcounted `content_blobs`,
+  hash-then-rename ordering, disk byte-level identity (`test_blob_layout`).
+- Chunked resumable upload API: `POST /uploads` (reserve), `PUT
+  .../chunks/{n}` (server-verified per-chunk SHA-256, oversized 413, conflict
+  409), `GET /uploads/{id}` (resume state), `POST .../complete` (streaming
+  assembly + final hash + dedup + File creation), `DELETE /uploads/{id}`
+  (abort + temp purge).
+- Local MIME sniffing from magic bytes (stored mime is server-derived), strict
+  filename validation at API boundary + defensive sanitizer in service.
+- Files API: metadata, content download with ETag/`If-None-Match` 304,
+  single-range & suffix Range streaming (206/416 per RFC 9110).
+- Quota + disk guardrails: per-user default quota; uploads refused with 507
+  when disk reaches 85% or below the 30 GB reserve (never auto-delete).
+- pytest storage suite: chunk mismatch, staging-cap, idempotent resume,
+  missing-chunks completion guard, abort cleanup, dedup refcount assertions,
+  quota + guardrail env-driven tests, IDOR ownership guard.
+
+### Verified
+- 29/29 tests pass; ruff clean (B008 FastAPI idiom ignored).
+
 ## 0.2.0 — Phase 2 (2026-11-09)
 ### Added
 - All 20 database entities (`backend/app/models/`, naming-convention-checkable,
