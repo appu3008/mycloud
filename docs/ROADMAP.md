@@ -46,6 +46,22 @@ Completed tasks are checked with the phase that verified them. No phase is
 - [ ] Files/folders pages wired to real API (upload/download/move/copy/delete/sort/search/multiselect/DnD)
 - [ ] Vitest + integration via backend test server
 
+## Phase 5 — folders & batch operations (done)
+- [x] Folder service: create/rename/move with live path maintenance, cycle
+      prevention, unique-name conflicts (409), ownership scoping everywhere
+- [x] Recursive soft-delete cascades (folders + files share one deleted_at
+      batch); restore returns exactly that batch — individually-deleted files
+      stay in the bin; stale paths rebuilt on restore
+- [x] Folders API: list children, tree, detail+breadcrumb, rename, move,
+      delete, restore, folder batch (delete/restore/move)
+- [x] Files API: batch move/copy/delete/restore/favorite + single rename;
+      copy re-points rows at the same blob (refcount++, quota-checked)
+- [x] Files page: breadcrumb navigation, create/rename dialogs, multi-select
+      with toolbar, HTML5 drag-and-drop (items between folders, OS files in),
+      uploads target the open folder
+- [x] pytest (18 new: 47 total) — naming/traversal, conflicts, cycles,
+      cascade restore semantics, IDOR + CSRF on every folder route
+
 ## Phases 5–17
 - [ ] Media (photos/videos/albums/thumbnails/streaming/EXIF GPS stripping)
 - [ ] Recycle bin + version history (retention policies)

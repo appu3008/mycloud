@@ -96,6 +96,7 @@ export async function api<T>(
 export async function uploadFileResumable(
   file: File,
   callbacks: {
+    targetFolderId?: string | null;
     onReserved?: (uploadId: string, totalChunks: number) => void;
     onChunkDone?: (done: number, total: number) => void;
     signal?: AbortSignal;
@@ -112,6 +113,7 @@ export async function uploadFileResumable(
     json: {
       filename: file.name,
       size_bytes: file.size,
+      target_folder_id: callbacks.targetFolderId ?? null,
       chunk_size_mb: Math.max(1, Math.min(16, Math.ceil(file.size / oneMiB / 64) || 1)),
     },
     signal: callbacks.signal,
@@ -157,4 +159,93 @@ export function downloadContent(fileId: string, filename: string, eTag?: string)
   anchor.click();
   anchor.remove();
   void eTag;
+}
+
+// --- folders & batch operations (phase 5) -----------------------------------
+
+export interface CloudFile {
+  id: string;
+  name: string;
+  extension: string;
+  mime_type: string;
+  size_bytes: number;
+  folder_id: string | null;
+  created_at: string;
+  updated_at: string;
+  mtime: string;
+  is_favorite: boolean;
+}
+
+export interface CloudFolder {
+  id: string;
+  parent_id: string | null;
+  name: string;
+  path: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FolderDetail extends CloudFolder {
+  breadcrumb: CloudFolder[];
+}
+
+export interface FolderTreeNode {
+  id: string;
+  name: string;
+  path: string;
+  children: FolderTreeNode[];
+}
+
+export type FileBatchAction = "delete" | "restore" | "move" | "copy" | "favorite" | "unfavorite";
+export type FolderBatchAction = "delete" | "restore" | "move";
+
+export function listFolders(parentId: string | null): Promise<{ items: CloudFolder[]; total: number }> {
+  const query = parentId ? `?parent_id=${encodeURIComponent(parentId)}` : "";
+  return api(`/v1/folders${query}`);
+}
+
+export function folderDetail(folderId: string): Promise<FolderDetail> {
+  return api(`/v1/folders/${folderId}`);
+}
+
+export function folderTree(): Promise<FolderTreeNode[]> {
+  return api("/v1/folders/tree");
+}
+
+export function createFolder(name: string, parentId: string | null): Promise<CloudFolder> {
+  return api("/v1/folders", { method: "POST", json: { name, parent_id: parentId } });
+}
+
+export function renameFolder(folderId: string, name: string): Promise<CloudFolder> {
+  return api(`/v1/folders/${folderId}`, { method: "PATCH", json: { name } });
+}
+
+export function deleteFolder(folderId: string): Promise<{ deleted: { folders: number; files: number } }> {
+  return api(`/v1/folders/${folderId}`, { method: "DELETE" });
+}
+
+export function batchFiles(
+  action: FileBatchAction,
+  fileIds: string[],
+  targetFolderId: string | null = null,
+): Promise<{ updated: number }> {
+  return api("/v1/files/batch", {
+    method: "POST",
+    json: { action, file_ids: fileIds, target_folder_id: targetFolderId },
+  });
+}
+
+export function batchFolders(
+  action: FolderBatchAction,
+  folderIds: string[],
+  parentId: string | null = null,
+): Promise<Record<string, { folders: number }>> {
+  return api("/v1/folders/batch", {
+    method: "POST",
+    json: { action, folder_ids: folderIds, parent_id: parentId },
+  });
+}
+
+export function renameFile(fileId: string, name: string): Promise<unknown> {
+  return api(`/v1/files/${fileId}`, { method: "PATCH", json: { name } });
 }

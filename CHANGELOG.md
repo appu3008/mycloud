@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.4.0 — Phase 4/5 (2026-11-14)
+### Added
+- Web UI (React 19 + TypeScript + Vite, runs under Bun): login/first-admin
+  enrollment screen with live window detection, responsive light/dark shell,
+  session + CSRF token handling (`frontend/src/services/api.ts`).
+- Files page wired to the real engine: resumable chunked uploads with
+  WebCrypto SHA-256 per chunk and live progress, real listings, ETag-backed
+  downloads; Overview page with live disk telemetry from `/api/health`.
+- Folder layer (`backend/app/services/folder_service.py`): create/rename/move
+  with path maintenance and cycle prevention, recursive soft-delete that
+  stamps one `deleted_at` batch (folders + files), cascade-precise restore
+  (individually deleted files stay in the bin), stale-path rebuild.
+- Folders API (`/api/v1/folders`): children listing, tree, detail with
+  breadcrumb, rename, move, delete, restore, batch delete/restore/move.
+- Files batch API: move / copy / delete / restore / favorite / unfavorite +
+  single-file rename. Copy re-points a new row at the same immutable blob
+  (refcount++, upload-style quota check, 413 on exceed).
+- Files page folder UX: breadcrumbs, `?folder=` deep links, new-folder and
+  rename dialogs, multi-select toolbar, native drag-and-drop (drag items onto
+  folders to move, drag OS files onto the page to upload into the open
+  folder).
+
+### Verified
+- 47/47 backend tests pass (18 new); ruff clean; `npm run build` clean.
+
 ## 0.3.0 — Phase 3 (2026-11-10)
 ### Added
 - Content-addressed blob store (`backend/app/storage/blob_store.py`): SHA-256

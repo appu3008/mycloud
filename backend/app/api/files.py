@@ -15,12 +15,15 @@ from sqlalchemy.orm import Session as SAMSession
 
 from ..core.config import get_settings
 from ..core.database import get_db
-from ..models import ContentBlob, User
+from ..models import ContentBlob, File, User, new_id, utcnow
 from ..models import Session as SessionRow
+from ..schemas.folders import FileBatch, FileRename
 from ..schemas.uploads import FileInfo
-from ..services import file_service
+from ..services import file_service, folder_service
+from ..services.upload_service import UploadRejected
 from ..storage import blob_store
-from .dependencies import get_current_auth
+from ..storage.mime import extension_of
+from .dependencies import csrf_protected_auth, get_current_auth
 
 router = APIRouter(prefix="/files", tags=["files"])
 
@@ -152,3 +155,116 @@ def list_files(
         "page": page,
         "page_size": page_size,
     }
+
+
+@router.patch("/{file_id}", response_model=FileInfo)
+def rename_file(
+    file_id: str,
+    body: FileRename,
+    auth: tuple[User, SessionRow] = Depends(csrf_protected_auth),
+    db: SAMSession = Depends(get_db),
+) -> FileInfo:
+    user, _ = auth
+    file_row, _blob = _load_owned_file(db, user.id, file_id)
+    if body.name != file_row.name:
+        file_row.name = body.name
+        file_row.extension = extension_of(body.name)
+        file_row.updated_at = utcnow()
+    db.commit()
+    return FileInfo.model_validate(file_row)
+
+
+@router.post("/batch")
+def batch_files(
+    body: FileBatch,
+    auth: tuple[User, SessionRow] = Depends(csrf_protected_auth),
+    db: SAMSession = Depends(get_db),
+) -> dict:
+    """Multi-select operations: move / copy / delete / restore / favorite.
+
+    Copy re-points a new row at the same immutable blob (ref_count++), so it
+    costs only quota, never bytes. Quota and target-folder ownership are
+    enforced exactly like uploads.
+    """
+    user, _ = auth
+    unique_ids = list(dict.fromkeys(body.file_ids))
+    owned = folder_service.owned_files_by_id(db, user.id, unique_ids)
+    missing = [fid for fid in unique_ids if fid not in owned]
+    if missing:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            detail={"error": "file_not_found", "missing": missing[:10]},
+        )
+
+    target_needed = body.action in ("move", "copy")
+    if target_needed:
+        file_service.folder_owned(db, user_id=user.id, folder_id=body.target_folder_id)
+
+    updated = 0
+    if body.action == "copy":
+        settings = get_settings()
+        total_incoming = sum(owned[fid].size_bytes for fid in unique_ids)
+        try:
+            folder_service.assert_within_quota(db, settings, user.id, total_incoming)
+        except UploadRejected as exc:
+            raise _failure_from_rejection(exc) from exc
+
+    for fid in unique_ids:
+        row = owned[fid]
+        if body.action == "move":
+            if row.deleted_at is not None:
+                raise HTTPException(
+                    status.HTTP_409_CONFLICT, detail={"error": "file_in_recycle_bin"}
+                )
+            row.folder_id = body.target_folder_id
+        elif body.action == "copy":
+            if row.deleted_at is not None:
+                raise HTTPException(
+                    status.HTTP_409_CONFLICT, detail={"error": "file_in_recycle_bin"}
+                )
+            blob = db.get(ContentBlob, row.blob_sha256)
+            if blob is None:
+                raise HTTPException(
+                    status.HTTP_404_NOT_FOUND, detail={"error": "content_missing"}
+                )
+            new_row = File(
+                id=new_id(),
+                owner_id=user.id,
+                folder_id=body.target_folder_id,
+                name=folder_service.unique_copy_name(
+                    db, user_id=user.id, folder_id=body.target_folder_id, name=row.name
+                ),
+                extension=row.extension,
+                mime_type=row.mime_type,
+                size_bytes=row.size_bytes,
+                blob_sha256=row.blob_sha256,
+                mtime=utcnow(),
+            )
+            db.add(new_row)
+            blob.ref_count += 1
+        elif body.action == "delete":
+            if row.deleted_at is None:
+                file_service.soft_delete_file(db, row)
+        elif body.action == "restore":
+            file_service.restore_file(db, row)
+        elif body.action == "favorite":
+            row.is_favorite = True
+        elif body.action == "unfavorite":
+            row.is_favorite = False
+        row.updated_at = utcnow()
+        updated += 1
+    db.commit()
+    return {"updated": updated}
+
+
+def _failure_from_rejection(exc: UploadRejected) -> HTTPException:
+    """Map upload-style rejections onto the same status codes uploads use."""
+    mapping = {
+        "quota_exceeded": status.HTTP_413_CONTENT_TOO_LARGE,
+        "file_too_large": status.HTTP_413_CONTENT_TOO_LARGE,
+        "disk_protected": status.HTTP_507_INSUFFICIENT_STORAGE,
+    }
+    return HTTPException(
+        mapping.get(exc.code, status.HTTP_400_BAD_REQUEST),
+        detail={"error": exc.code, "message": exc.detail},
+    )

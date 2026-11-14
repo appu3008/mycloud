@@ -129,7 +129,11 @@ def folder_owned(db: SAMSession, *, user_id: str, folder_id: str | None) -> Fold
     if folder_id is None:
         return None
     folder = db.execute(
-        select(Folder).where(Folder.id == folder_id, Folder.owner_id == user_id)
+        select(Folder).where(
+            Folder.id == folder_id,
+            Folder.owner_id == user_id,
+            Folder.deleted_at.is_(None),
+        )
     ).scalar_one_or_none()
     if folder is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail={"error": "folder_not_found"})

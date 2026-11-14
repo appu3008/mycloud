@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../services/api";
-import type { CloudFile } from "../pages/FilesPage";
+import type { CloudFile } from "../services/api";
 import { PageTitle } from "../components/Layout";
 
 function humanSize(bytes: number): string {
