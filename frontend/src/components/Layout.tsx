@@ -2,37 +2,65 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
+import logoUrl from "../assets/figma/logo-cloud.svg";
+import iconSun from "../assets/figma/icon-sun.svg";
+import iconMoon from "../assets/figma/icon-moon.svg";
+import navOverview from "../assets/figma/nav-overview.svg";
+import navMyFiles from "../assets/figma/nav-myfiles.svg";
+import navRecent from "../assets/figma/nav-recent.svg";
+import navFavorites from "../assets/figma/nav-favorites.svg";
+import navShared from "../assets/figma/nav-shared.svg";
+import navRecycle from "../assets/figma/nav-recycle.svg";
+import navPhotos from "../assets/figma/nav-photos.svg";
+import navVideos from "../assets/figma/nav-videos.svg";
+import navDevices from "../assets/figma/nav-devices.svg";
+import navActivity from "../assets/figma/nav-activity.svg";
+import navMonitor from "../assets/figma/nav-monitor.svg";
+import navSettings from "../assets/figma/nav-settings.svg";
 import "../styles/layout.css";
 
-const NAV_SECTIONS: { header: string; links: { to: string; label: string }[] }[] = [
-  {
-    header: "Cloud",
-    links: [
-      { to: "/", label: "Overview" },
-      { to: "/files", label: "My Files" },
-      { to: "/recent", label: "Recent Files" },
-      { to: "/favorites", label: "Favorites" },
-      { to: "/shared", label: "Shared Files" },
-      { to: "/recycle", label: "Recycle Bin" },
-    ],
-  },
-  {
-    header: "Media",
-    links: [
-      { to: "/photos", label: "Photos" },
-      { to: "/videos", label: "Videos" },
-    ],
-  },
-  {
-    header: "System",
-    links: [
-      { to: "/devices", label: "Devices" },
-      { to: "/activity", label: "Activity" },
-      { to: "/monitor", label: "Server Monitor" },
-      { to: "/settings", label: "Settings" },
-    ],
-  },
+interface NavItem {
+  to: string;
+  label: string;
+  icon: string;
+}
+
+const CLOUD_NAV: NavItem[] = [
+  { to: "/", label: "Overview", icon: navOverview },
+  { to: "/files", label: "My Files", icon: navMyFiles },
+  { to: "/recent", label: "Recent Files", icon: navRecent },
+  { to: "/favorites", label: "Favorites", icon: navFavorites },
+  { to: "/shared", label: "Shared Files", icon: navShared },
+  { to: "/recycle", label: "Recycle Bin", icon: navRecycle },
 ];
+const MEDIA_NAV: NavItem[] = [
+  { to: "/photos", label: "Photos", icon: navPhotos },
+  { to: "/videos", label: "Videos", icon: navVideos },
+];
+const SYSTEM_NAV: NavItem[] = [
+  { to: "/devices", label: "Devices", icon: navDevices },
+  { to: "/activity", label: "Activity", icon: navActivity },
+  { to: "/monitor", label: "Server Monitor", icon: navMonitor },
+  { to: "/settings", label: "Settings", icon: navSettings },
+];
+
+function NavTabs({ items }: { items: NavItem[] }) {
+  return (
+    <>
+      {items.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          end={item.to === "/"}
+          className={({ isActive }) => `nav-tab${isActive ? " active" : ""}`}
+        >
+          <img src={item.icon} alt="" width={14} height={14} />
+          <span>{item.label}</span>
+        </NavLink>
+      ))}
+    </>
+  );
+}
 
 export function Layout() {
   const { user, logout } = useAuth();
@@ -46,42 +74,62 @@ export function Layout() {
 
   return (
     <div className="app-shell">
-      <aside className="sidebar">
-        <div className="brand-row">
-          <span className="brand">MyCloud</span>
-          <button className="ghost-btn icon-btn" onClick={toggle} title="Toggle theme">
-            {theme === "dark" ? "☀" : "☾"}
-          </button>
+      <header className="topbar">
+        <div className="brand-cell">
+          <img src={logoUrl} alt="" width={22} height={22} className="brand-mark" />
+          <span className="brand-name">localcloud</span>
         </div>
-        <nav>
-          {NAV_SECTIONS.map((section) => (
-            <div key={section.header} className="nav-section">
-              <div className="nav-header">{section.header}</div>
-              {section.links.map((link) => (
-                <NavLink key={link.to} to={link.to} end className={({ isActive }) =>
-                  `nav-link${isActive ? " active" : ""}`}
-                >
-                  {link.label}
-                </NavLink>
-              ))}
-            </div>
-          ))}
-        </nav>
-      </aside>
-      <div className="main-column">
-        <header className="topbar">
-          <div className="search-slot" />
-          <div className="top-actions">
-            <span className="user-chip">{user?.display_name ?? user?.email}</span>
-            <button className="ghost-btn" onClick={handleLogout}>
-              Log out
+        <div className="server-cell">
+          <span className="mono-label">Your personal server</span>
+          <span className="mono-label">Hosted on your laptop</span>
+        </div>
+        <div className="workspace-cell mono-label">Personal workspace</div>
+        <div className="top-actions">
+          <div className="theme-toggle" role="group" aria-label="Theme">
+            <button
+              className={`theme-opt${theme === "light" ? " active" : ""}`}
+              onClick={() => theme !== "light" && toggle()}
+            >
+              <img src={iconSun} alt="" width={12} height={12} />
+              <span>Light</span>
+            </button>
+            <button
+              className={`theme-opt${theme === "dark" ? " active" : ""}`}
+              onClick={() => theme !== "dark" && toggle()}
+            >
+              <img src={iconMoon} alt="" width={12} height={12} />
+              <span>Dark</span>
             </button>
           </div>
-        </header>
-        <main className="content">
-          <Outlet />
-        </main>
-      </div>
+          <span className="role-chip mono-label">{user?.role === "admin" ? "Administrator" : "Member"}</span>
+          <button className="ghost-btn mono-label" onClick={handleLogout}>
+            Log out
+          </button>
+        </div>
+      </header>
+
+      <nav className="nav-rows" aria-label="Primary">
+        <div className="nav-row">
+          <span className="nav-group mono-label">Cloud</span>
+          <div className="nav-tabs">
+            <NavTabs items={CLOUD_NAV} />
+            <span className="nav-disabled mono-label" aria-hidden="true">
+              Media
+            </span>
+            <NavTabs items={MEDIA_NAV} />
+          </div>
+        </div>
+        <div className="nav-row">
+          <span className="nav-group mono-label">System</span>
+          <div className="nav-tabs">
+            <NavTabs items={SYSTEM_NAV} />
+          </div>
+        </div>
+      </nav>
+
+      <main className="content">
+        <Outlet />
+      </main>
     </div>
   );
 }
@@ -91,6 +139,20 @@ export function PageTitle({ title, actions }: { title: string; actions?: ReactNo
     <div className="page-title-row">
       <h1>{title}</h1>
       <div className="page-actions">{actions}</div>
+    </div>
+  );
+}
+
+export function PageTagline({ children }: { children: ReactNode }) {
+  return <div className="page-tagline mono-label">{children}</div>;
+}
+
+/** Eyebrow row above the page title (small icon + mono label), per design. */
+export function Eyebrow({ icon, children }: { icon?: string; children: ReactNode }) {
+  return (
+    <div className="page-eyebrow mono-label">
+      {icon && <img src={icon} alt="" width={12} height={12} />}
+      <span>{children}</span>
     </div>
   );
 }

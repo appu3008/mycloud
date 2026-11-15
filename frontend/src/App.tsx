@@ -19,7 +19,7 @@ export function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/" element={<OverviewPage />} />
+        <Route path="/" element={<OverviewPage displayName={user.display_name} />} />
         <Route path="/files" element={<FilesPage />} />
         {(
           [

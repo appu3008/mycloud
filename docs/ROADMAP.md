@@ -42,8 +42,15 @@ Completed tasks are checked with the phase that verified them. No phase is
 - [x] pytest (19 new incl. IDOR guard, dedup refcounts, temp cleanup, range 416s)
 
 ## Phase 4 — file manager frontend
-- [ ] Vite/React/TS scaffold, theming, responsive shell
-- [ ] Files/folders pages wired to real API (upload/download/move/copy/delete/sort/search/multiselect/DnD)
+- [x] Vite/React/TS scaffold, theming, responsive shell
+- [x] Files/folders pages wired to real API (upload/download/move/copy/delete/sort/search/multiselect/DnD)
+- [x] Figma design implemented (nodes 1:70 login, 1:294 overview, 1:636 files):
+      top brand bar + tab navigation shell (CLOUD/MEDIA/SYSTEM rows, green
+      active underline), dark/light token sets (`src/index.css`), mono
+      micro-label typography, 32 design assets in `src/assets/figma/`
+      (currentColor icons, deduped server photo), designed empty states that
+      only render when real state matches, live bindings kept (health
+      telemetry, recent files, breadcrumbs, sort params, enrollment note)
 - [ ] Vitest + integration via backend test server
 
 ## Phase 5 — folders & batch operations (done)
@@ -61,6 +68,19 @@ Completed tasks are checked with the phase that verified them. No phase is
       uploads target the open folder
 - [x] pytest (18 new: 47 total) — naming/traversal, conflicts, cycles,
       cascade restore semantics, IDOR + CSRF on every folder route
+
+## Figma design pass (2026-11-15, done)
+- [x] Implemented the three screens from Figma file `23b5Dvlpat8fRqHtcnfbk2`:
+      login (1:70), overview (1:294), my-files (1:636) — brand renders as
+      "localcloud", API/product name stays MyCloud.
+- [x] Shell rework: sidebar replaced by brand bar + two tab nav rows; theme
+      segmented toggle (Light/Dark); per-page eyebrow + tagline rows.
+- [x] Verification: production build green (314 KB JS / 95 KB gzip); login
+      screen screenshot-compared against the Figma target via a scripted
+      browser capture (chromium, dark scheme) and corrected (design eye
+      glyph, mono note/tagline, card radius, photo brightness). Overview and
+      Files await an owner eyeball pass (authed screenshots skipped).
+- [ ] Owner visual sign-off on Overview + My Files.
 
 ## Phases 5–17
 - [ ] Media (photos/videos/albums/thumbnails/streaming/EXIF GPS stripping)

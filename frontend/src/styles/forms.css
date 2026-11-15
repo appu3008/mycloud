@@ -1,56 +1,154 @@
+/* localcloud login (Figma node 1:70) */
+
 .login-wrap {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 24px;
+  position: relative;
+  background: var(--bg-deep);
 }
+
+/* full-bleed server photo, darker than the app shell */
+.login-wrap::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: url("../assets/figma/photo-server.png") center / cover no-repeat;
+  opacity: 0.62;
+  pointer-events: none;
+}
+
+:root[data-theme="light"] .login-wrap::before { opacity: 0.2; }
+
+.login-wrap > * { position: relative; }
 
 .login-card {
   width: 100%;
-  max-width: 380px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius, 10px);
-  padding: 26px 24px;
+  max-width: 420px;
+  background: color-mix(in srgb, var(--bg-deep) 82%, transparent);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  padding: 26px 24px 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+}
+
+.login-badge {
+  align-self: flex-start;
+  background: var(--accent-badge-bg);
+  border: 1px solid var(--accent-badge-border);
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 4px 8px;
 }
 
 .login-card h1 {
-  margin: 0 0 4px;
-  font-size: 20px;
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-.login-card .hint {
+.login-sub {
+  margin: -6px 0 4px;
   color: var(--muted);
   font-size: 13px;
-  margin: 0;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
-.login-card label {
+.login-field {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  font-size: 13px;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--muted);
 }
 
-.login-card input {
-  background: var(--bg, transparent);
-  border: 1px solid var(--border);
+.login-field input {
+  background: var(--input-bg);
+  border: 1px solid var(--border-soft);
   color: inherit;
   border-radius: 8px;
-  padding: 9px 10px;
-  font-size: 14px;
+  padding: 11px 12px;
+  font-size: 13px;
+  font-family: system-ui, sans-serif;
+  letter-spacing: normal;
+  text-transform: none;
+  width: 100%;
 }
 
-.form-error {
-  background: color-mix(in srgb, var(--danger) 12%, transparent);
-  color: var(--danger);
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-size: 13px;
+.login-field input::placeholder { color: color-mix(in srgb, var(--muted) 70%, transparent); }
+
+.login-field input:focus {
+  outline: none;
+  border-color: var(--accent);
 }
+
+.password-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-box input { padding-right: 38px; }
+
+.eye-toggle {
+  position: absolute;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+}
+.eye-toggle:hover { color: var(--accent); }
+
+.login-submit {
+  width: 100%;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.login-note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.65;
+  opacity: 0.85;
+}
+
+.login-note img { color: var(--muted); flex-shrink: 0; margin-top: 2px; }
+
+.login-note p { margin: 0; }
+.login-note.open img { color: var(--accent); }
+
+.login-tagline {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin-top: 2px;
+}
+
+.login-card .form-error { margin: -4px 0 0; }

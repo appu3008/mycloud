@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.4.1 — Figma design pass (2026-11-15)
+### Added
+- The three Figma screens (file `23b5Dvlpat8fRqHtcnfbk2`) implemented in the
+  frontend: login `1:70` (`LoginPage.tsx`, `styles/forms.css`), overview
+  `1:294` (`OverviewPage.tsx`, `styles/overview.css`), my-files `1:636`
+  (`FilesPage.tsx`, `styles/files.css`); new shell `components/Layout.tsx`
+  (`styles/layout.css`): top brand bar ("localcloud") + CLOUD/MEDIA/SYSTEM
+  tab rows with green active underline + Light/Dark segmented toggle.
+- Design tokens in `src/index.css` (dark set from the file, light variant),
+  mono uppercase micro-labels, per-page eyebrows/taglines.
+- 32 design assets in `src/assets/figma/`: icons normalized to
+  `currentColor` so CSS drives active/inactive states, identical photos
+  deduped to one `photo-server.png`.
+- Designed empty states render only when the real state matches (recent
+  uploads empty, folder empty state), per the no-fake-data rule.
+
+### Changed
+- Overview storage card now binds to live `/api/health` telemetry with an
+  honest "awaiting server data" state only on failure; welcome name from the
+  session profile; login "enrollment closed" note from `provider/init`.
+- Files sort buttons drive the API `sort`/`order` params; panel footer shows
+  `?folder=` breadcrumbs. All Phase 5 behavior (multi-select, DnD, uploads,
+  modals) preserved.
+
+### Verified
+- `bun --bun run build` clean (313.87 KB JS / 95.11 KB gzip); oxlint: only
+  pre-existing benign warnings; backend 47/47 tests pass.
+- Login screen screenshot-compared against the Figma node in a scripted
+  chromium capture and corrected. Overview/My Files: owner eyeball pass
+  pending (authed captures skipped).
+
 ## 0.4.0 — Phase 4/5 (2026-11-14)
 ### Added
 - Web UI (React 19 + TypeScript + Vite, runs under Bun): login/first-admin
