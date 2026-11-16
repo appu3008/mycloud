@@ -65,7 +65,43 @@
 
 .col-check { width: 40px; }
 
-.files-table input[type="checkbox"] { accent-color: var(--accent); cursor: pointer; }
+/* design: 16px outline checkbox, accent fill when checked */
+.files-table input[type="checkbox"] {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  border: 1px solid var(--border-soft);
+  border-radius: 2px;
+  background: var(--panel);
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+  vertical-align: middle;
+}
+
+.files-table input[type="checkbox"]::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  transform: scale(0);
+  transition: transform 0.12s ease-in-out;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  background: var(--accent-contrast);
+}
+
+.files-table input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.files-table input[type="checkbox"]:checked::before { transform: scale(1); }
+
+/* design column proportions: name dominates, metadata columns narrow */
+.files-table th:nth-child(2), .files-table td:nth-child(2) { width: 52%; }
+.files-table th:nth-child(3), .files-table td:nth-child(3) { width: 12%; }
+.files-table th:nth-child(4), .files-table td:nth-child(4) { width: 12%; }
+.files-table th:nth-child(5), .files-table td:nth-child(5) { width: 18%; }
 
 .dim-cell { color: var(--muted); font-size: 13.5px; }
 
@@ -81,7 +117,6 @@
 }
 .sort-btn:hover { color: var(--text); }
 .sort-btn img { color: currentColor; transition: transform 0.15s; }
-.sort-btn img.dim { opacity: 0.35; }
 .sort-btn img.desc { transform: rotate(180deg); }
 
 .row-link {
@@ -120,16 +155,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 74px;
-  height: 74px;
-  border-radius: 14px;
+  width: 92px;
+  height: 80px;
+  border-radius: 2px;
   background: var(--panel-2);
-  border: 1px solid var(--border);
   color: var(--text-dim);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
-.empty-title { margin: 0; font-size: 15.5px; font-weight: 600; }
+.empty-title { margin: 0; font-size: 21px; font-weight: 400; }
 
 .empty-sub { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
 

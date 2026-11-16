@@ -364,38 +364,44 @@ export function FilesPage() {
               <th>
                 <button className="sort-btn mono-label" onClick={() => sortBy("name")}>
                   Name
-                  <img
-                    src={iconChevronUp}
-                    alt=""
-                    width={16}
-                    height={16}
-                    className={sortKey === "name" ? (sortAsc ? "asc" : "desc") : "dim"}
-                  />
+                  {sortKey === "name" && (
+                    <img
+                      src={iconChevronUp}
+                      alt=""
+                      width={16}
+                      height={16}
+                      className={sortAsc ? "asc" : "desc"}
+                    />
+                  )}
                 </button>
               </th>
               <th>
                 <button className="sort-btn mono-label" onClick={() => sortBy("size")}>
                   Size
-                  <img
-                    src={iconChevronUp}
-                    alt=""
-                    width={16}
-                    height={16}
-                    className={sortKey === "size" ? (sortAsc ? "asc" : "desc") : "dim"}
-                  />
+                  {sortKey === "size" && (
+                    <img
+                      src={iconChevronUp}
+                      alt=""
+                      width={16}
+                      height={16}
+                      className={sortAsc ? "asc" : "desc"}
+                    />
+                  )}
                 </button>
               </th>
               <th><span className="mono-label">Type</span></th>
               <th>
                 <button className="sort-btn mono-label" onClick={() => sortBy("mtime")}>
                   Modified
-                  <img
-                    src={iconChevronUp}
-                    alt=""
-                    width={16}
-                    height={16}
-                    className={sortKey === "mtime" ? (sortAsc ? "asc" : "desc") : "dim"}
-                  />
+                  {sortKey === "mtime" && (
+                    <img
+                      src={iconChevronUp}
+                      alt=""
+                      width={16}
+                      height={16}
+                      className={sortAsc ? "asc" : "desc"}
+                    />
+                  )}
                 </button>
               </th>
               <th aria-label="actions" />

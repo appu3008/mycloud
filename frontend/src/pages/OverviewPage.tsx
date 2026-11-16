@@ -67,42 +67,51 @@ export function OverviewPage({ displayName }: { displayName: string }) {
 
       {/* server storage — real telemetry; unavailable state only when health fails */}
       <section className={`card storage-card${diskUsable ? "" : " unavailable"}`}>
-        <div className="storage-head">
-          <img src={iconServer} alt="" width={24} height={24} />
-          <span className="mono-label">Server storage</span>
+        <div className="storage-left">
+          <div className="storage-head">
+            <img src={iconServer} alt="" width={24} height={24} />
+            <span className="storage-title mono-label">Server storage</span>
+          </div>
+          {!diskUsable && <span className="chip">Awaiting server data</span>}
         </div>
         {diskUsable && health ? (
-          <div className="storage-body">
-            <div className="storage-stat">
+          <div className="storage-stats">
+            <div className="storage-used">
+              <span className="storage-value">{humanSize(health.disk.used_bytes)}</span>
+              <span className="storage-caption mono-label">
+                used of {humanSize(health.disk.total_bytes)} total
+              </span>
+            </div>
+            <div className="storage-meter">
               <span className="storage-bar" aria-hidden="true">
                 <span style={{ width: `${Math.min(100, health.disk.used_percent)}%` }} />
               </span>
-              <span className="storage-caption mono-label">
-                {humanSize(health.disk.used_bytes)} used of {humanSize(health.disk.total_bytes)} total
-              </span>
+              <div className="meter-caption">
+                <span className="mono-label">{humanSize(health.disk.free_bytes)} free</span>
+                <span className="mono-label">{health.disk.used_percent.toFixed(1)}% used</span>
+              </div>
             </div>
-            <div className="storage-stat">
-              <span className="storage-bar thin" aria-hidden="true">
-                <span style={{ width: `${Math.min(100, health.disk.used_percent)}%` }} />
-              </span>
-              <span className="storage-caption mono-label">
-                {health.disk.used_percent.toFixed(1)}% used
-              </span>
-            </div>
-            <p className="storage-note">
-              {humanSize(health.disk.free_bytes)} free · quota and disk guardrails active.
-            </p>
           </div>
         ) : (
-          <div className="storage-body">
-            <span className="chip">Awaiting server data</span>
-            <div className="storage-unavailable mono-label">
-              <span>— used of — total</span>
-              <span>Usage unavailable · — % used</span>
+          <div className="storage-stats">
+            <div className="storage-used">
+              <span className="storage-value">&mdash;</span>
+              <span className="storage-caption mono-label">used of &mdash; total</span>
             </div>
-            <p className="storage-note">Disk usage will appear when your server responds.</p>
+            <div className="storage-meter">
+              <span className="storage-bar" aria-hidden="true" />
+              <div className="meter-caption">
+                <span className="mono-label">Usage unavailable</span>
+                <span className="mono-label">&mdash; % used</span>
+              </div>
+            </div>
           </div>
         )}
+        <p className="storage-note">
+          {diskUsable
+            ? "Quota and disk guardrails active."
+            : "Disk usage will appear when your server responds."}
+        </p>
       </section>
 
       <div className="overview-grid">
@@ -127,6 +136,7 @@ export function OverviewPage({ displayName }: { displayName: string }) {
             </ul>
           ) : (
             <div className="recent-empty">
+              <p className="recent-lede">Your latest files will appear here.</p>
               <div className="recent-empty-row">
                 <span className="recent-doc">
                   <img src={iconFileDoc} alt="" width={30} height={30} />

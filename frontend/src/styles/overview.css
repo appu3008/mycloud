@@ -9,63 +9,97 @@
 /* --- storage card ---------------------------------------------------------- */
 
 .storage-card {
+  position: relative;
   display: flex;
   align-items: stretch;
-  gap: 22px;
-  padding: 16px 18px;
+  gap: 30px;
+  padding: 20px 24px;
   margin-bottom: 18px;
+}
+
+/* design detail: green accent rule along the card's top-right edge */
+.storage-card::after,
+.cta-card::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  right: 0;
+  width: 180px;
+  height: 1px;
+  background: var(--accent);
+}
+
+.storage-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  flex-shrink: 0;
 }
 
 .storage-head {
   display: flex;
   align-items: center;
-  gap: 9px;
-  flex-shrink: 0;
+  gap: 14px;
 }
 
 .storage-head img { color: var(--text-dim); }
 
-.storage-body {
+.storage-title { color: var(--text); }
+
+.storage-stats {
   flex: 1;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 52px;
   min-width: 0;
+  padding-top: 4px;
 }
 
-.storage-stat {
+.storage-used {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-end;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.storage-value {
+  font-size: 38px;
+  font-weight: 300;
+  letter-spacing: -0.8px;
+  line-height: 0.9;
+}
+
+.storage-caption { white-space: nowrap; padding-bottom: 3px; }
+
+.storage-meter {
+  flex: 1;
+  max-width: 450px;
+  min-width: 200px;
+  align-self: center;
 }
 
 .storage-bar {
-  flex: 1;
-  max-width: 300px;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--border);
+  display: block;
+  width: 100%;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--panel-2);
   overflow: hidden;
-  display: inline-block;
 }
 
 .storage-bar > span {
   display: block;
   height: 100%;
-  border-radius: 999px;
+  border-radius: 2px;
   background: var(--accent);
 }
 
-.storage-bar.thin { max-width: 100%; height: 3px; }
-
-.storage-caption { white-space: nowrap; }
-
-.storage-unavailable {
+.meter-caption {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
-  color: var(--muted);
-  opacity: 0.7;
+  gap: 12px;
+  margin-top: 12px;
 }
 
 .storage-note {
@@ -73,16 +107,12 @@
   color: var(--muted);
   font-size: 12.5px;
   border-left: 1px solid var(--border);
-  padding-left: 14px;
+  padding-left: 28px;
   align-self: stretch;
   display: flex;
   align-items: center;
-}
-
-.storage-card.unavailable .storage-note {
-  border-left: 0;
-  padding-left: 0;
-  max-width: 240px;
+  flex-shrink: 0;
+  max-width: 300px;
 }
 
 /* --- two-column grid -------------------------------------------------------- */
@@ -96,12 +126,17 @@
 
 .recent-card, .cta-card { padding: 16px 18px; }
 
+.cta-card { position: relative; }
+.cta-card::after { width: 120px; }
+
 .recent-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
 }
+
+.recent-head > .mono-label { color: var(--text); }
 
 .recent-link {
   display: inline-flex;
@@ -138,29 +173,37 @@
 
 .recent-meta { color: var(--muted); white-space: nowrap; }
 
-.recent-empty { padding: 18px 0 6px; }
+.recent-empty { padding: 14px 0 6px; }
+
+.recent-lede {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
 
 .recent-empty-row {
   display: flex;
   align-items: center;
   gap: 14px;
+  border-top: 1px solid var(--border);
+  margin-top: 14px;
+  padding-top: 30px;
 }
 
 .recent-doc {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 10px;
+  width: 66px;
+  height: 66px;
+  border-radius: 2px;
   background: var(--panel-2);
-  border: 1px solid var(--border);
   color: var(--text-dim);
   flex-shrink: 0;
 }
 
-.recent-empty-title { margin: 0 0 2px; font-size: 14.5px; }
-.recent-empty-sub { margin: 0; color: var(--muted); font-size: 12.5px; }
+.recent-empty-title { margin: 0 0 5px; font-size: 17px; font-weight: 400; color: var(--muted); }
+.recent-empty-sub { margin: 0; color: var(--muted); font-size: 13px; }
 
 .recent-empty-row .with-arrow {
   margin-left: auto;
