@@ -4,7 +4,8 @@ dist = "dist"
 public_dir = "public"
 
 # Dev server proxies /api to the locally-bound backend (loopback only),
-# mirroring the React app's vite proxy.
+# mirroring the React app's vite proxy. `rewrite` strips the incoming /api
+# prefix; the backend URL re-adds it since FastAPI mounts routes at /api/v1.
 [[proxy]]
 rewrite = "/api"
-backend = "http://127.0.0.1:8000"
+backend = "http://127.0.0.1:8000/api/"
