@@ -126,7 +126,10 @@ pub async fn get<T: DeserializeOwned>(path: &str) -> Result<T, ApiError> {
 
 /// Send JSON, expecting a JSON response.
 pub async fn send_json<T: DeserializeOwned>(path: &str, method: &str, json: &impl serde::Serialize) -> Result<T, ApiError> {
-    let body = serde_wasm_bindgen::to_value(json).map_err(|e| error_from_message(0, e.to_string()))?;
+    // Bodies must be a JSON *string* (like JSON.stringify): a plain JS object
+    // is coerced by the browser to "[object Object]" and the API 422s.
+    let text = serde_json::to_string(json).map_err(|e| error_from_message(0, e.to_string()))?;
+    let body = JsValue::from_str(&text);
     let response = perform(path, method, Some(body), Vec::new()).await?;
     if response.status() == 204 {
         return serde_json::from_str("null")

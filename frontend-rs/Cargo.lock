@@ -105,7 +105,6 @@ dependencies = [
  "futures-channel",
  "js-sys",
  "serde",
- "serde-wasm-bindgen",
  "serde_json",
  "sha2",
  "wasm-bindgen",
