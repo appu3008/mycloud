@@ -1,0 +1,10 @@
+[build]
+target = "index.html"
+dist = "dist"
+public_dir = "public"
+
+# Dev server proxies /api to the locally-bound backend (loopback only),
+# mirroring the React app's vite proxy.
+[[proxy]]
+rewrite = "/api"
+backend = "http://127.0.0.1:8000"

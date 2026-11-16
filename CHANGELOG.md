@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.5.0 — Frontend rewrite in Rust (2026-11-16)
+### Added
+- `frontend-rs/`: the web frontend rewritten in Rust with Yew 0.23 +
+  yew-router 0.20, built with Trunk 0.22 — cargo replaces npm/Bun entirely
+  (`trunk serve` dev-proxies `/api` to the backend, `trunk build --release`
+  produces `frontend-rs/dist/`).
+- Full feature parity with the previous React app: session + CSRF auth
+  bootstrap, login/first-admin enrollment screen, light/dark theme with
+  `prefers-color-scheme` default, resumable chunked uploads with SHA-256
+  per chunk (sha2 crate + FileReader slices), file/folder listing with
+  sorting, `?folder=` navigation and breadcrumbs, multi-select batch
+  move/copy/delete, drag-and-drop (internal re-order + external file drop),
+  create/rename modals, folder picker, honest placeholder pages.
+
+### Verified
+- `cargo check --target wasm32-unknown-unknown`: 0 errors, 0 warnings.
+- `trunk build --release`: success (1.65 MB WASM + 54 KB JS glue).
+- All three Figma screens (login 1:70, overview 1:294, my-files 1:636)
+  screenshot-verified at 1920x1080 against the mock API in both dark and
+  light themes — pixel-faithful to the React implementation; design CSS
+  and Figma assets are reused verbatim from `frontend-rs/public/`.
+
 ## 0.4.1 — Figma design pass (2026-11-15)
 ### Added
 - The three Figma screens (file `23b5Dvlpat8fRqHtcnfbk2`) implemented in the
