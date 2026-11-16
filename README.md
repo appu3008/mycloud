@@ -29,6 +29,9 @@ Design CSS and Figma assets ship verbatim from `frontend-rs/public/` (same
 files as the original design pass). Requires `trunk` and the
 `wasm32-unknown-unknown` target (`rustup target add wasm32-unknown-unknown`).
 
+The original React + Vite app is kept in `frontend/` for reference; it is
+superseded by `frontend-rs/` and no longer part of the build.
+
 ## Status — phases
 | # | Phase | State |
 |---|---|---|
