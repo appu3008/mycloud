@@ -68,6 +68,7 @@ enum ModalState {
     Create,
     Move,
     Rename { target_is_file: bool, id: String },
+    Share { target_is_file: bool, id: String, name: String },
 }
 
 fn drag_types(event: &DragEvent) -> Vec<String> {
@@ -498,6 +499,77 @@ pub fn files_page() -> Html {
         })
     };
 
+    // --- sharing -------------------------------------------------------------
+
+    let share_expiry = use_state(String::new);   // "", "24", "168", "720" (hours)
+    let share_max = use_state(String::new);      // "", "1", "5", "25" (downloads)
+    let share_password = use_state(String::new);
+    let share_result = use_state(|| None::<api::ShareCreated>);
+
+    let confirm_share = {
+        let busy = busy.clone();
+        let error = error.clone();
+        let modal = modal.clone();
+        let share_expiry = share_expiry.clone();
+        let share_max = share_max.clone();
+        let share_password = share_password.clone();
+        let share_result = share_result.clone();
+        Callback::from(move |_| {
+            let ModalState::Share { target_is_file, id, .. } = (*modal).clone() else {
+                return;
+            };
+            let kind = if target_is_file { "file" } else { "folder" };
+            let expiry = (*share_expiry).parse::<u64>().ok();
+            let max = (*share_max).parse::<u64>().ok();
+            let password = (*share_password).trim().to_string();
+            let password: Option<String> = (!password.is_empty()).then_some(password);
+            let busy = busy.clone();
+            let error = error.clone();
+            let share_result = share_result.clone();
+            busy.set(true);
+            error.set(String::new());
+            wasm_bindgen_futures::spawn_local(async move {
+                match api::create_share(kind, &id, expiry, max, password.as_deref()).await {
+                    Ok(created) => share_result.set(Some(created)),
+                    Err(err) => error.set(err.to_string()),
+                }
+                busy.set(false);
+            });
+        })
+    };
+
+    let copy_share_link = {
+        let share_result = share_result.clone();
+        Callback::from(move |_| {
+            if let Some(created) = (*share_result).clone() {
+                if let Some(window) = web_sys::window() {
+                    let url = format!(
+                        "{}/share/{}",
+                        window.location().origin().unwrap_or_default(),
+                        created.token
+                    );
+                    if let Some(clipboard) = Some(window.navigator().clipboard()) {
+                        let _ = clipboard.write_text(&url);
+                    }
+                }
+            }
+        })
+    };
+
+    let share_field_input = |setter: UseStateHandle<String>| -> Callback<yew::Event> {
+        Callback::from(move |event: yew::Event| {
+            let input: web_sys::HtmlInputElement = event.target_unchecked_into();
+            setter.set(input.value());
+        })
+    };
+    let share_password_input = {
+        let share_password = share_password.clone();
+        Callback::from(move |event: yew::InputEvent| {
+            let input: web_sys::HtmlInputElement = event.target_unchecked_into();
+            share_password.set(input.value());
+        })
+    };
+
     // --- selection, sorting & drag ------------------------------------------
 
     let toggle_file = {
@@ -715,6 +787,26 @@ pub fn files_page() -> Html {
                 modal_text.set(name.clone());
             })
         };
+        let share = {
+            let modal = modal.clone();
+            let share_expiry = share_expiry.clone();
+            let share_max = share_max.clone();
+            let share_password = share_password.clone();
+            let share_result = share_result.clone();
+            let id = file.id.clone();
+            let name = file.name.clone();
+            Callback::from(move |_| {
+                share_result.set(None);
+                share_expiry.set(String::new());
+                share_max.set(String::new());
+                share_password.set(String::new());
+                modal.set(ModalState::Share {
+                    target_is_file: true,
+                    id: id.clone(),
+                    name: name.clone(),
+                });
+            })
+        };
         let toggle = toggle_file.clone();
         let id = file.id.clone();
         html! {
@@ -731,6 +823,7 @@ pub fn files_page() -> Html {
                     <button class="ghost-btn mono-label" onclick={download}>{"Download"}</button>
                     <button class="ghost-btn mono-label" disabled={*busy} onclick={copy}>{"Copy"}</button>
                     <button class="ghost-btn mono-label" disabled={*busy} onclick={rename}>{"Rename"}</button>
+                    <button class="ghost-btn mono-label" disabled={*busy} onclick={share}>{"Share"}</button>
                 </td>
             </tr>
         }
@@ -803,6 +896,26 @@ pub fn files_page() -> Html {
                 modal_text.set(name.clone());
             })
         };
+        let share = {
+            let modal = modal.clone();
+            let share_expiry = share_expiry.clone();
+            let share_max = share_max.clone();
+            let share_password = share_password.clone();
+            let share_result = share_result.clone();
+            let id = folder.id.clone();
+            let name = folder.name.clone();
+            Callback::from(move |_| {
+                share_result.set(None);
+                share_expiry.set(String::new());
+                share_max.set(String::new());
+                share_password.set(String::new());
+                modal.set(ModalState::Share {
+                    target_is_file: false,
+                    id: id.clone(),
+                    name: name.clone(),
+                });
+            })
+        };
         let delete_folder = {
             let delete_one_folder = delete_one_folder.clone();
             let id = folder.id.clone();
@@ -831,6 +944,7 @@ pub fn files_page() -> Html {
                 <td class="dim-cell">{format_date(&folder.updated_at, false)}</td>
                 <td class="row-actions">
                     <button class="ghost-btn mono-label" disabled={*busy} onclick={rename}>{"Rename"}</button>
+                    <button class="ghost-btn mono-label" disabled={*busy} onclick={share}>{"Share"}</button>
                     <button class="ghost-btn mono-label danger" disabled={*busy} onclick={delete_folder}>{"Delete"}</button>
                 </td>
             </tr>
@@ -931,6 +1045,78 @@ pub fn files_page() -> Html {
                     })}
                 />
             </Modal>
+        },
+        ModalState::Share { target_is_file, name, .. } => {
+            let share_link = (*share_result).as_ref().map(|created| {
+                web_sys::window()
+                    .and_then(|w| w.location().origin().ok())
+                    .map(|origin| format!("{origin}/share/{}", created.token))
+                    .unwrap_or_default()
+            });
+            html! {
+                <Modal title={format!("Share \u{201C}{}\u{201D}", name)}
+                       on_close={close_modal.clone()}>
+                    {share_link.map(|link| html! {
+                        <>
+                            <p class="share-created-note">
+                                {"Link created \u{2014} copy it now; it is not shown again."}
+                            </p>
+                            <label class="modal-field">
+                                {"Share link"}
+                                <input readonly={true} value={link} />
+                            </label>
+                            <div class="modal-footer-inline">
+                                <button class="ghost-btn mono-label" onclick={copy_share_link.clone()}>
+                                    {"Copy link"}
+                                </button>
+                                <button class="primary-btn"
+                                        onclick={close_modal.clone().reform(|_| ())}>
+                                    <span class="mono-label">{"Done"}</span>
+                                </button>
+                            </div>
+                        </>
+                    }).unwrap_or_else(|| html! {
+                        <>
+                            <p class="modal-note">
+                                {format!("Anyone with the link can download this {}.",
+                                    if target_is_file { "file" } else { "folder and everything in it" })}
+                            </p>
+                            <label class="modal-field">
+                                {"Expires"}
+                                <select value={(*share_expiry).clone()}
+                                        onchange={share_field_input(share_expiry.clone())}>
+                                    <option value="">{"Never"}</option>
+                                    <option value="24">{"In 24 hours"}</option>
+                                    <option value="168">{"In 7 days"}</option>
+                                    <option value="720">{"In 30 days"}</option>
+                                </select>
+                            </label>
+                            <label class="modal-field">
+                                {"Download limit"}
+                                <select value={(*share_max).clone()}
+                                        onchange={share_field_input(share_max.clone())}>
+                                    <option value="">{"Unlimited"}</option>
+                                    <option value="1">{"1 download"}</option>
+                                    <option value="5">{"5 downloads"}</option>
+                                    <option value="25">{"25 downloads"}</option>
+                                </select>
+                            </label>
+                            <label class="modal-field">
+                                {"Password (optional)"}
+                                <input value={(*share_password).clone()}
+                                       oninput={share_password_input}
+                                       placeholder="Min 4 characters" />
+                            </label>
+                            <div class="modal-footer-inline">
+                                <button class="primary-btn" disabled={*busy}
+                                        onclick={confirm_share.clone()}>
+                                    {"Create link"}
+                                </button>
+                            </div>
+                        </>
+                    })}
+                </Modal>
+            }
         },
         ModalState::Rename { target_is_file, .. } => html! {
             <Modal title={format!("Rename {}", if target_is_file { "file" } else { "folder" })}

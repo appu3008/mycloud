@@ -410,6 +410,112 @@ pub async fn duplicates() -> Result<DuplicatesReport, ApiError> {
     get("/v1/duplicates").await
 }
 
+// --- shares -------------------------------------------------------------------
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ShareInfo {
+    pub id: String,
+    pub resource_type: String,
+    pub file_id: Option<String>,
+    pub folder_id: Option<String>,
+    pub resource_name: String,
+    pub password_protected: bool,
+    pub max_downloads: Option<i64>,
+    pub download_count: i64,
+    pub expires_at: Option<String>,
+    pub revoked_at: Option<String>,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ShareCreated {
+    pub share: ShareInfo,
+    pub token: String,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ShareList {
+    pub items: Vec<ShareInfo>,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct PublicShareMeta {
+    pub kind: String,
+    pub name: String,
+    pub owner_name: String,
+    pub size_bytes: u64,
+    pub has_password: bool,
+    pub expires_at: Option<String>,
+    pub downloads_remaining: Option<i64>,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct PublicShareItem {
+    pub id: String,
+    pub name: String,
+    pub size_bytes: u64,
+    pub mtime: String,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct PublicShareItems {
+    pub folder: PublicShareMeta,
+    pub items: Vec<PublicShareItem>,
+}
+
+pub async fn create_share(
+    resource_type: &str,
+    resource_id: &str,
+    expires_in_hours: Option<u64>,
+    max_downloads: Option<u64>,
+    password: Option<&str>,
+) -> Result<ShareCreated, ApiError> {
+    send_json(
+        "/v1/shares",
+        "POST",
+        &serde_json::json!({
+            "resource_type": resource_type,
+            "resource_id": resource_id,
+            "expires_in_hours": expires_in_hours,
+            "max_downloads": max_downloads,
+            "password": password,
+        }),
+    )
+    .await
+}
+
+pub async fn list_shares() -> Result<ShareList, ApiError> {
+    get("/v1/shares").await
+}
+
+pub async fn revoke_share(share_id: &str) -> Result<(), ApiError> {
+    send_json_unit(&format!("/v1/shares/{share_id}"), "DELETE", &serde_json::json!({})).await
+}
+
+// Public endpoints: these go through the raw fetch wrapper but live at the
+// same /api base; they need no CSRF and no session.
+pub async fn public_share_meta(token: &str) -> Result<PublicShareMeta, ApiError> {
+    get(&format!("/v1/public/shares/{token}")).await
+}
+
+pub async fn public_share_items(token: &str) -> Result<PublicShareItems, ApiError> {
+    get(&format!("/v1/public/shares/{token}/items")).await
+}
+
+/// Open the public download in a new tab (so the browser streams it).
+pub fn download_public_share(token: &str, password: Option<&str>, item_id: Option<&str>) {
+    let path = match item_id {
+        Some(id) => format!("/api/v1/public/shares/{token}/items/{id}/download"),
+        None => format!("/api/v1/public/shares/{token}/download"),
+    };
+    let url = match password {
+        Some(pw) => format!("{path}?password={}", js_sys::encode_uri_component(pw).as_string().unwrap_or_default()),
+        None => path,
+    };
+    let window = web_sys::window().expect("no window");
+    let _ = window.open_with_url_and_target(&url, "_self");
+}
+
 // --- auth --------------------------------------------------------------------
 
 pub async fn me() -> Result<MyCloudUser, ApiError> {

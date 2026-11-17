@@ -22,6 +22,8 @@ use crate::pages::overview::OverviewPage;
 use crate::pages::placeholder::PlaceholderPage;
 use crate::pages::trash::TrashPage;
 use crate::pages::monitor::MonitorPage;
+use crate::pages::shared::SharedPage;
+use crate::pages::share_view::ShareViewPage;
 use crate::theme::Theme;
 
 // Icon paths (served from public/assets/figma, same files as the React app).
@@ -47,6 +49,8 @@ pub enum Route {
     Favorites,
     #[at("/shared")]
     Shared,
+    #[at("/share/:token")]
+    Share { token: String },
     #[at("/recycle")]
     Recycle,
     #[at("/photos")]
@@ -130,6 +134,14 @@ fn app() -> Html {
             {
                 if *loading {
                     html! { <div class="splash">{"Loading MyCloud\u{2026}"}</div> }
+                } else if let Some(token) = web_sys::window()
+                    .and_then(|window| window.location().pathname().ok())
+                    .and_then(|path| path.strip_prefix("/share/").map(str::to_string))
+                {
+                    // Public share links must work without a session.
+                    html! {
+                        <ShareViewPage token={token} />
+                    }
                 } else if auth.user.is_none() {
                     html! {
                         <LoginPage enrollment_open={*enrollment_open} on_logged_in={on_logged_in} />
@@ -152,6 +164,7 @@ fn app() -> Html {
                                 Route::Files => html! { <FilesPage /> },
                                 Route::Recycle => html! { <TrashPage /> },
                                 Route::Monitor => html! { <MonitorPage /> },
+                                Route::Shared => html! { <SharedPage /> },
                                 _ => html! { <PlaceholderPage /> },
                             };
                             html! {

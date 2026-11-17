@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.7.0 — Duplicate detection, storage analytics, sharing (2026-11-17)
+### Added
+- Analytics API: `GET /api/v1/storage/usage` (live usage vs quota, counts)
+  and `GET /api/v1/duplicates` (exact copies via shared content blobs,
+  wasted bytes per group, biggest waste first).
+- Server Monitor page (`/monitor`): server disk, your storage meter,
+  duplicate groups with their file lists.
+- Sharing (phase 9): `POST/GET /api/v1/shares` + `DELETE .../{id}` (create,
+  list, revoke links for files and folders; optional expiry, download
+  limit, Argon2id-hashed password) and unauthenticated
+  `GET /api/v1/public/shares/{token}[/items|/download|/items/{id}/download]`
+  — tokens are stored hashed, links 410 on revoke/expiry/limit, shares die
+  with their resource, folder shares only expose that folder's live files.
+- Frontend: Share modal in My Files (expiry / limit / password options,
+  one-time link copy), Shared Files page (download counts, revoke), and a
+  public `/share/{token}` recipient page with password prompt and folder
+  listing — works without a session.
+
+### Verified
+- `pytest`: 71 passed (16 new: 6 analytics + 10 sharing, incl. password,
+  exhaust, expiry, resource-deletion and CSRF cases).
+- `cargo check --target wasm32-unknown-unknown` clean;
+  `trunk build --release` success; `/monitor`, `/shared`, `/share/{token}`
+  screenshot-verified in dark theme.
+
 ## 0.6.0 — Recycle bin (2026-11-17)
 ### Added
 - Trash API (`/api/v1/trash`): list top-level deleted items, batch restore,

@@ -21,6 +21,8 @@ from .api import auth as auth_api
 from .api import analytics as analytics_api
 from .api import files as files_api
 from .api import folders as folders_api
+from .api import public as public_api
+from .api import shares as shares_api
 from .api import trash as trash_api
 from .api import uploads as uploads_api
 from .core.config import get_settings
@@ -78,6 +80,8 @@ def register_routes(app: FastAPI) -> None:
     app.include_router(folders_api.router, prefix="/api/v1")
     app.include_router(trash_api.router, prefix="/api/v1")
     app.include_router(analytics_api.router, prefix="/api/v1")
+    app.include_router(shares_api.router, prefix="/api/v1")
+    app.include_router(public_api.router, prefix="/api/v1")
 
     @app.get("/", include_in_schema=False)
     def index() -> dict:
