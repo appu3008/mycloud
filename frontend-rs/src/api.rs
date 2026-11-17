@@ -536,6 +536,102 @@ pub async fn activity(page: i64, limit: i64) -> Result<ActivityList, ApiError> {
     get(&format!("/v1/activity?page={page}&limit={limit}")).await
 }
 
+// --- devices + sync ---------------------------------------------------------------
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct DeviceInfo {
+    pub id: String,
+    pub name: String,
+    pub platform: String,
+    pub has_public_key: bool,
+    pub trust_level: String,
+    pub can_sync: bool,
+    pub can_backup: bool,
+    pub last_seen_at: Option<String>,
+    pub revoked_at: Option<String>,
+    pub job_count: i64,
+    pub conflict_count: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct DeviceList {
+    pub items: Vec<DeviceInfo>,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct SyncJobInfo {
+    pub id: String,
+    pub device_id: String,
+    pub file_id: String,
+    pub direction: String,
+    pub state: String,
+    pub local_checksum: Option<String>,
+    pub server_checksum: Option<String>,
+    pub conflict_strategy: Option<String>,
+    pub attempts: i64,
+    pub error: Option<String>,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct SyncJobList {
+    pub items: Vec<SyncJobInfo>,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct BackupConfig {
+    pub device_id: String,
+    pub device_name: String,
+    pub upload_endpoint: String,
+    pub chunk_endpoint: String,
+    pub complete_endpoint: String,
+    pub auth: String,
+    pub chunk_checksum_header: String,
+    pub max_chunk_mb: i64,
+    pub trust_level: String,
+}
+
+pub async fn devices() -> Result<DeviceList, ApiError> {
+    get("/v1/devices").await
+}
+
+pub async fn register_device(name: &str, platform: &str) -> Result<DeviceInfo, ApiError> {
+    send_json(
+        "/v1/devices",
+        "POST",
+        &serde_json::json!({"name": name, "platform": platform}),
+    )
+    .await
+}
+
+pub async fn update_device(
+    device_id: &str,
+    patch: &serde_json::Value,
+) -> Result<DeviceInfo, ApiError> {
+    send_json(&format!("/v1/devices/{device_id}"), "PATCH", &patch).await
+}
+
+pub async fn backup_config(device_id: &str) -> Result<BackupConfig, ApiError> {
+    get(&format!("/v1/devices/{device_id}/backup-config")).await
+}
+
+pub async fn sync_jobs(device_id: Option<&str>) -> Result<SyncJobList, ApiError> {
+    match device_id {
+        Some(id) => get(&format!("/v1/sync/jobs?device_id={id}")).await,
+        None => get("/v1/sync/jobs").await,
+    }
+}
+
+pub async fn resolve_conflict(job_id: &str, strategy: &str) -> Result<(), ApiError> {
+    send_json_unit(
+        &format!("/v1/sync/jobs/{job_id}/resolve"),
+        "POST",
+        &serde_json::json!({"strategy": strategy}),
+    )
+    .await
+}
+
 // --- media library ----------------------------------------------------------------
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]

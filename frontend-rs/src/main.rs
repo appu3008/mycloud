@@ -27,6 +27,7 @@ use crate::pages::share_view::ShareViewPage;
 use crate::pages::activity::ActivityPage;
 use crate::pages::settings::SettingsPage;
 use crate::pages::media::MediaPage;
+use crate::pages::devices::DevicesPage;
 use crate::theme::Theme;
 
 // Icon paths (served from public/assets/figma, same files as the React app).
@@ -172,6 +173,7 @@ fn app() -> Html {
                                 Route::Settings => html! { <SettingsPage /> },
                                 Route::Photos => html! { <MediaPage kind="photo" /> },
                                 Route::Videos => html! { <MediaPage kind="video" /> },
+                                Route::Devices => html! { <DevicesPage /> },
                                 _ => html! { <PlaceholderPage /> },
                             };
                             html! {

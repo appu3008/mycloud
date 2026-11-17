@@ -1,6 +1,7 @@
 //! Page components.
 
 pub mod activity;
+pub mod devices;
 pub mod files;
 pub mod login;
 pub mod media;

@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.12.0 — Devices, sync and Android client path (2026-11-17)
+### Added
+- Devices API: registration (untrusted by default), explicit trust,
+  permission grants, heartbeat, revocation, and an Android-facing
+  `GET /devices/{id}/backup-config` describing the resumable upload protocol.
+- Sync jobs API: queue up/down jobs, completion with checksums, conflict
+  detection against the server blob SHA-256, and human resolution
+  (accept_server / accept_local).
+- Devices page: registration form, trust/revoke controls, backup-config
+  viewer, sync-job table and conflict resolution buttons.
+- `docs/ANDROID_CLIENT.md`: end-to-end client protocol (no APK shipped;
+  explicit about keys not being E2E encryption).
+
+### Verified
+- `pytest`: 92 passed (5 new device/sync tests); wasm check + trunk build
+  green; `/devices` screenshot-verified dark.
+
+
 ## 0.11.0 — Photo/video library (2026-11-17)
 ### Added
 - Server-side media classification at upload time (magic-byte MIME), with
