@@ -49,7 +49,7 @@ superseded by `frontend-rs/` and no longer part of the build.
 | 4 | File manager frontend (Rust/Yew) + Figma screens | **done** |
 | 5 | Folders & batch operations (hierarchy, batch APIs, DnD) | **done** |
 | 6 | Recycle bin UI + version history | **done** |
-| 7 | Photo/video system (albums, thumbnails, streaming) | pending |
+| 7 | Photo/video system (albums, thumbnails, streaming) | **done** |
 | 8 | Duplicate detection | **done** |
 | 9 | Sharing | **done** |
 | 10 | Devices + sync | pending |

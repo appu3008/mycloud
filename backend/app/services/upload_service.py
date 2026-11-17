@@ -323,6 +323,10 @@ def complete(
     upload.final_file_id = file_row.id
 
     shutil.rmtree(work_dir, ignore_errors=True)
+    db.flush()  # file_row.id must exist before metadata is linked
+    from .media_service import ensure_metadata
+
+    ensure_metadata(db, settings, file_row)
     return file_row
 
 

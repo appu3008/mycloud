@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.11.0 — Photo/video library (2026-11-17)
+### Added
+- Server-side media classification at upload time (magic-byte MIME), with
+  PNG/JPEG dimensions and `gps_stripped` metadata; EXIF is never retained.
+- `GET /api/v1/media/photos|videos` (album filter), and a thumbnail endpoint
+  that generates a local Pillow thumbnail when installed or serves the
+  original inline otherwise (no external service).
+- Albums API: create/list albums, add/remove files, delete, with live counts.
+- Photos/Videos pages: responsive media grid, album filter/creation,
+  per-item add-to-album, inline images and Range-streamed `<video>` players.
+
+### Verified
+- `pytest`: 87 passed (4 new media tests); wasm check + trunk build green;
+  `/photos` screenshot-verified dark.
+
+
 ## 0.10.0 — File version history (2026-11-17)
 ### Added
 - Uploading with `replace_file_id` archives the previous blob as a numbered

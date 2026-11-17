@@ -536,6 +536,79 @@ pub async fn activity(page: i64, limit: i64) -> Result<ActivityList, ApiError> {
     get(&format!("/v1/activity?page={page}&limit={limit}")).await
 }
 
+// --- media library ----------------------------------------------------------------
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct MediaItem {
+    pub id: String,
+    pub name: String,
+    pub mime_type: String,
+    pub size_bytes: u64,
+    pub mtime: String,
+    pub kind: Option<String>,
+    pub width: Option<i64>,
+    pub height: Option<i64>,
+    pub duration_seconds: Option<f64>,
+    pub gps_stripped: bool,
+    pub has_thumbnail: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct MediaList {
+    pub items: Vec<MediaItem>,
+    pub total: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct AlbumInfo {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub cover_file_id: Option<String>,
+    pub file_count: i64,
+    pub total_bytes: u64,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct AlbumList {
+    pub items: Vec<AlbumInfo>,
+}
+
+pub async fn media(kind: &str, album_id: Option<&str>) -> Result<MediaList, ApiError> {
+    let path = match album_id {
+        Some(id) => format!("/v1/media/{kind}s?album_id={id}"),
+        None => format!("/v1/media/{kind}s"),
+    };
+    get(&path).await
+}
+
+pub async fn albums() -> Result<AlbumList, ApiError> {
+    get("/v1/albums").await
+}
+
+pub async fn create_album(name: &str) -> Result<AlbumInfo, ApiError> {
+    send_json(
+        "/v1/albums",
+        "POST",
+        &serde_json::json!({ "name": name, "description": "" }),
+    )
+    .await
+}
+
+pub async fn add_to_album(album_id: &str, file_id: &str) -> Result<(), ApiError> {
+    send_json_unit(
+        &format!("/v1/albums/{album_id}/files"),
+        "POST",
+        &serde_json::json!({ "file_ids": [file_id] }),
+    )
+    .await
+}
+
+pub async fn delete_album(album_id: &str) -> Result<(), ApiError> {
+    send_json_unit(&format!("/v1/albums/{album_id}"), "DELETE", &serde_json::json!({})).await
+}
+
 // --- version history -------------------------------------------------------------
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]

@@ -3,6 +3,7 @@
 pub mod activity;
 pub mod files;
 pub mod login;
+pub mod media;
 pub mod monitor;
 pub mod overview;
 pub mod placeholder;
