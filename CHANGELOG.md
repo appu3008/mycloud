@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.17.0 — Same-origin CSRF fix (2026-11-17)
+### Fixed
+- Mutating requests from the app's own origin (e.g. `http://127.0.0.1:8000`)
+  were rejected with `origin_forbidden` because the origin check only trusted
+  the CORS allow-list (default `127.0.0.1:5173`). Same-origin requests are now
+  accepted based on the actual scheme/Host; cross-origin remains restricted
+  to explicitly configured origins.
+
+### Verified
+- `pytest`: 119 passed, 1 skipped (new same-origin/foreign-origin test).
+
+
 ## 0.16.0 — All-in-one: hosting app manager + own-network auditing (2026-11-17)
 ### Added
 - Hosting app manager (admin only): register static or proxy apps with

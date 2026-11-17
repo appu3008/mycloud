@@ -40,14 +40,27 @@ def _resolve_auth(db: SAMSession, request: Request) -> tuple[User, Session]:
 
 
 def _verify_origin(request: Request) -> None:
-    """If the client sent Origin, it must be a configured allowed origin."""
+    """Reject cross-origin mutations unless explicitly allowed.
+
+    Same-origin requests must work regardless of the CORS allow-list: CORS
+    controls cross-origin reads, while CSRF protection only needs to ensure
+    a mutation came from this site. The origin is compared with the scheme
+    and Host the client actually used (so localhost:8000 and 127.0.0.1:8000
+    both work when that is where the app is served).
+    """
     origin = request.headers.get("origin")
     if not origin:
-        return  # same-origin fetches omit Origin (older agents)
-    if origin not in get_settings().cors_origins:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail={"error": "origin_forbidden"}
-        )
+        return  # same-origin fetches may omit Origin (older agents)
+    host = request.headers.get("host")
+    same_origin = (
+        host is not None
+        and origin == f"{request.url.scheme}://{host}"
+    )
+    if same_origin or origin in get_settings().cors_origins:
+        return
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN, detail={"error": "origin_forbidden"}
+    )
 
 
 def get_current_auth(

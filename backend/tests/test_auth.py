@@ -86,6 +86,24 @@ def test_csrf_required_on_mutations(client, admin_auth):
     assert client.get("/api/v1/auth/me").json()["display_name"] == "Renamed"
 
 
+def test_same_origin_header_is_allowed_but_foreign_origin_blocked(client, admin_auth):
+    csrf = csrf_headers(admin_auth["csrf_token"])
+    same = client.patch(
+        "/api/v1/auth/me",
+        json={"display_name": "Local Host"},
+        headers={**csrf, "Origin": "http://testserver"},
+    )
+    assert same.status_code == 200, same.text
+
+    foreign = client.patch(
+        "/api/v1/auth/me",
+        json={"display_name": "Hacked"},
+        headers={**csrf, "Origin": "https://evil.example"},
+    )
+    assert foreign.status_code == 403
+    assert foreign.json()["detail"]["error"] == "origin_forbidden"
+
+
 def test_brute_force_lockout_is_durable(client, admin_auth):
     email = admin_auth["email"]
     for _ in range(3):
