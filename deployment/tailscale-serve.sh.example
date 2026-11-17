@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+# Optional zero-config private exposure via Tailscale Serve (no public IP,
+# no port forwarding, no TLS certificate management on this host).
+# Review before running: `tailscale serve` changes host network state.
+
+set -eu
+
+# The backend serves both /api/* and the built Yew app from one loopback port
+# (see main.py SPA fallback), so a single target is enough. All traffic stays
+# inside the tailnet; uvicorn itself never binds a non-loopback interface.
+tailscale serve --bg --https=443 / http://127.0.0.1:8000
+
+# Show the resulting MagicDNS URL and current state.
+tailscale serve status
+
+# To stop:  tailscale serve --https=443 off
+# To allow a device: approve it in the Tailscale admin console AND trust it in
+# MyCloud's Devices page — two independent trust steps.
+
+# Alternative (nginx terminating TLS on the tailnet interface): do NOT use
+# tailscale serve; bind nginx to the Tailscale IP:443 using
+# deployment/nginx-mycloud.conf.example and let it proxy /api to 127.0.0.1:8000.

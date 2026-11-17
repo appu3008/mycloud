@@ -59,7 +59,7 @@ superseded by `frontend-rs/` and no longer part of the build.
 | 14 | Optional E2E encryption | **done** (browser vault; client-only keys) |
 | 15 | Backup/recovery jobs | **done** (manual runs; cron not in-process yet) |
 | 16 | Security test suite | **done** |
-| 17 | Remote connectivity (Tailscale) + production deployment | pending |
+| 17 | Remote connectivity (Tailscale) + production deployment | **done** (documented; no host network changes) |
 
 Docs: `ARCHITECTURE.md` · `DATABASE.md` · `API.md` · `SECURITY.md` ·
 `DEPLOYMENT.md` · `BACKUP_AND_RESTORE.md` · `CHANGELOG.md` · `docs/`.

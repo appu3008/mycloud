@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.15.0 — Remote connectivity + single-origin production serving (2026-11-17)
+### Added
+- Backend serves the built Yew app from the same origin via a 404 fallback
+  that preserves API 404/405 semantics; one reverse-proxy/Tailscale target
+  now serves both the API and client routes (`/share/{token}`, etc.).
+- `docs/REMOTE_ACCESS.md`: Tailscale Serve and nginx runbooks, CGNAT guidance,
+  production checklist and verification commands.
+- `deployment/nginx-mycloud.conf.example` (TLS/HSTS/CSP + loopback proxy) and
+  `deployment/tailscale-serve.sh.example` (private tailnet-only exposure).
+
+### Verified
+- `pytest`: 110 passed, 1 skipped (no CSS asset in this build); new SPA tests
+  cover client routes and API route precedence. No host network state changed.
+
+
 ## 0.14.0 — Security suite + optional E2E vault (2026-11-17)
 ### Added
 - Consolidated security regression suite (9 tests): hashed session/share

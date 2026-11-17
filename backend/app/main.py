@@ -12,10 +12,12 @@ from __future__ import annotations
 
 import logging
 import shutil
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import FileResponse, JSONResponse
 
 from .api import auth as auth_api
 from .api import activity as activity_api
@@ -32,7 +34,7 @@ from .api import media as media_api
 from .api import devices as devices_api
 from .api import alerts as alerts_api
 from .api import admin as admin_api
-from .core.config import get_settings
+from .core.config import PROJECT_ROOT, get_settings
 from .core.database import database_status
 
 settings = get_settings()
@@ -142,6 +144,24 @@ def register_routes(app: FastAPI) -> None:
     @app.get("/api/health/ping", tags=["health"])
     def ping() -> dict:
         return {"ok": True}
+
+    # Serve the built Yew app from the same origin when a release build exists.
+    # A 404 handler (not a catch-all route) keeps FastAPI's real 404/405
+    # semantics for /api paths while letting Yew client routes load index.html.
+    dist = PROJECT_ROOT / "frontend-rs" / "dist"
+    if (dist / "index.html").is_file():
+        dist_root = dist.resolve()
+        index_file = dist_root / "index.html"
+
+        @app.exception_handler(404)
+        async def spa_fallback(request, exc):
+            path = request.url.path
+            if path.startswith(("/api", "/health")):
+                return JSONResponse(status_code=404, content={"detail": exc.detail})
+            candidate = (dist_root / path.lstrip("/")).resolve()
+            if candidate.is_file() and candidate.is_relative_to(dist_root):
+                return FileResponse(candidate)
+            return FileResponse(index_file)
 
 
 app = create_app()

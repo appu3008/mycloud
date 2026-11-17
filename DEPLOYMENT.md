@@ -44,3 +44,16 @@ Components:
 ## systemd (files under `deployment/`)
 - `mycloud-backend.service` (example unit, hardened flags, after=network.target)
 - Install path: `/etc/systemd/system/` (privileged action — ask first).
+
+## Concrete runbook (phase 17)
+- `docs/REMOTE_ACCESS.md`: Tailscale Serve and nginx options, CGNAT notes,
+  production checklist, verification commands.
+- `deployment/nginx-mycloud.conf.example`: TLS, HSTS/CSP, SPA static files and
+  `/api` proxy to the loopback backend.
+- `deployment/tailscale-serve.sh.example`: private tailnet-only exposure that
+  points at `127.0.0.1:8000` (the backend serves both API and SPA).
+- Backend SPA fallback is covered by `tests/test_static_spa.py`: unknown API
+  paths stay JSON 404 and 405 semantics are preserved.
+
+No network state, firewall, or systemd units were changed on this host; all
+deployment files are examples for review.
