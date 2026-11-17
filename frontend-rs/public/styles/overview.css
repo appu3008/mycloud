@@ -265,3 +265,50 @@
   .storage-card { flex-direction: column; gap: 12px; }
   .storage-note { border-left: 0; padding-left: 0; }
 }
+
+/* --- server monitor: duplicates report ---------------------------------------- */
+
+.dupes-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.dupes-summary { color: var(--text); margin-bottom: 10px; }
+.dupes-summary.hint, .recent-head .hint { color: var(--muted); }
+
+.dupe-group {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.dupe-group:last-child { margin-bottom: 0; }
+
+.dupe-group-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dupe-group-head .hint { color: var(--muted); }
+
+.dupe-items {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dupe-items li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+  border-top: 1px solid var(--border);
+}
+
+.dupe-items li:first-child { border-top: 0; }

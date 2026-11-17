@@ -364,6 +364,52 @@ pub async fn purge_trash(
     .await
 }
 
+// --- storage analytics + duplicates ------------------------------------------
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct StorageUsage {
+    pub used_bytes: u64,
+    pub quota_bytes: u64,
+    pub file_count: u64,
+    pub folder_count: u64,
+    pub trash_files: u64,
+    pub trash_bytes: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct DuplicateItem {
+    pub id: String,
+    pub name: String,
+    pub folder_id: Option<String>,
+    pub size_bytes: u64,
+    pub created_at: String,
+    pub mtime: String,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct DuplicateGroup {
+    pub sha256: String,
+    pub size_bytes: u64,
+    pub copies: u64,
+    pub wasted_bytes: u64,
+    pub items: Vec<DuplicateItem>,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct DuplicatesReport {
+    pub groups: Vec<DuplicateGroup>,
+    pub group_count: u64,
+    pub total_wasted_bytes: u64,
+}
+
+pub async fn storage_usage() -> Result<StorageUsage, ApiError> {
+    get("/v1/storage/usage").await
+}
+
+pub async fn duplicates() -> Result<DuplicatesReport, ApiError> {
+    get("/v1/duplicates").await
+}
+
 // --- auth --------------------------------------------------------------------
 
 pub async fn me() -> Result<MyCloudUser, ApiError> {
