@@ -13,8 +13,7 @@ DIST = PROJECT_ROOT / "frontend-rs" / "dist"
 
 @pytest.mark.skipif(not (DIST / "index.html").is_file(), reason="frontend build not present")
 def test_client_routes_serve_index(client):
-    # "/" is the API's friendly JSON index; real app routes serve the SPA.
-    for path in ("/files", "/share/a-token", "/settings"):
+    for path in ("/", "/files", "/share/a-token", "/settings"):
         response = client.get(path)
         assert response.status_code == 200, path
         assert "<html" in response.text.lower(), path

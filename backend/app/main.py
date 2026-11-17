@@ -105,9 +105,13 @@ def register_routes(app: FastAPI) -> None:
     app.include_router(hosting_api.router, prefix="/api/v1")
     app.include_router(security_api.router, prefix="/api/v1")
 
-    @app.get("/", include_in_schema=False)
-    def index() -> dict:
-        """Friendly root so manual probing points at real paths, not 404s."""
+    dist = PROJECT_ROOT / "frontend-rs" / "dist"
+
+    @app.get("/", include_in_schema=False, response_model=None)
+    def index():
+        """Open the app at the root when built; otherwise describe the API."""
+        if (dist / "index.html").is_file():
+            return FileResponse(dist / "index.html")
         return {
             "service": "MyCloud API",
             "health": "/api/health",
@@ -152,7 +156,6 @@ def register_routes(app: FastAPI) -> None:
     # Serve the built Yew app from the same origin when a release build exists.
     # A 404 handler (not a catch-all route) keeps FastAPI's real 404/405
     # semantics for /api paths while letting Yew client routes load index.html.
-    dist = PROJECT_ROOT / "frontend-rs" / "dist"
     if (dist / "index.html").is_file():
         dist_root = dist.resolve()
         index_file = dist_root / "index.html"
