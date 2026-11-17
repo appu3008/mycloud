@@ -166,7 +166,11 @@ def complete_upload(
     upload_row = _get_owned_upload(db, user.id, public_id)
     try:
         file_row = upload_service.complete(
-            db, get_settings(), upload=upload_row, filename_override=body.filename if body else None
+            db,
+            get_settings(),
+            upload=upload_row,
+            filename_override=body.filename if body else None,
+            replace_file_id=body.replace_file_id if body else None,
         )
         db.commit()
     except UploadRejected as exc:

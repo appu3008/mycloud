@@ -536,6 +536,36 @@ pub async fn activity(page: i64, limit: i64) -> Result<ActivityList, ApiError> {
     get(&format!("/v1/activity?page={page}&limit={limit}")).await
 }
 
+// --- version history -------------------------------------------------------------
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct VersionItem {
+    pub id: String,
+    pub version_number: i64,
+    pub blob_sha256: String,
+    pub size_bytes: u64,
+    pub created_by: String,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct VersionList {
+    pub items: Vec<VersionItem>,
+}
+
+pub async fn list_versions(file_id: &str) -> Result<VersionList, ApiError> {
+    get(&format!("/v1/files/{file_id}/versions")).await
+}
+
+pub async fn restore_version(file_id: &str, version_id: &str) -> Result<(), ApiError> {
+    send_json_unit(
+        &format!("/v1/files/{file_id}/versions/{version_id}/restore"),
+        "POST",
+        &serde_json::json!({}),
+    )
+    .await
+}
+
 // --- backups -------------------------------------------------------------------
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -767,6 +797,7 @@ pub async fn upload_file_resumable(
     file: &web_sys::File,
     target_folder_id: Option<&str>,
     hooks: UploadHooks,
+    replace_file_id: Option<&str>,
 ) -> Result<CompletedUpload, ApiError> {
     let one_mib = 1024f64 * 1024f64;
     let size = file.size();
@@ -807,7 +838,7 @@ pub async fn upload_file_resumable(
     send_json(
         &format!("/v1/uploads/{}/complete", reserved.upload_id),
         "POST",
-        &serde_json::json!({}),
+        &serde_json::json!({ "replace_file_id": replace_file_id }),
     )
     .await
 }

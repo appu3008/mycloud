@@ -215,6 +215,7 @@ def complete(
     *,
     upload: Upload,
     filename_override: str | None = None,
+    replace_file_id: str | None = None,
 ) -> File:
     """Assemble -> (apply final quota/disk checks) -> blob -> File row.
 
@@ -252,14 +253,23 @@ def complete(
     if written > settings.max_file_size_mb * 1024 * 1024:
         raise UploadRejected("file_too_large")
 
+    # Replacing a file frees its old bytes from live usage, so only the
+    # difference counts against quota (negative when the new file is smaller).
+    replacing = None
+    if replace_file_id:
+        from .file_service import get_file_owned
+
+        replacing = get_file_owned(db, user_id=upload.user_id, file_id=replace_file_id)
+    incoming = written - (replacing.size_bytes if replacing else 0)
     _assert_quota(
         db,
         settings,
         user_id=upload.user_id,
-        incoming_bytes=written,
+        incoming_bytes=incoming,
         exclude_upload_id=upload.id,
     )
-    _assert_disk(settings, written)
+    if incoming > 0:
+        _assert_disk(settings, incoming)
 
     sha256_hex = hasher.hexdigest()
     try:
@@ -281,18 +291,33 @@ def complete(
     blob.ref_count += 1
 
     name = sanitize_filename(filename_override or upload.filename)
-    file_row = File(
-        id=new_id(),
-        owner_id=upload.user_id,
-        folder_id=upload.target_folder_id,
-        name=name,
-        extension=extension_of(name),
-        mime_type=sniff_mime(_head_of(settings, sha256_hex)),
-        size_bytes=written,
-        blob_sha256=sha256_hex,
-        mtime=utcnow(),
-    )
-    db.add(file_row)
+    mime_type = sniff_mime(_head_of(settings, sha256_hex))
+    if replacing is not None:
+        from . import version_service
+
+        version_service.archive_current(
+            db, replacing, created_by="upload-replace", new_sha256=sha256_hex
+        )
+        replacing.name = name
+        replacing.extension = extension_of(name)
+        replacing.mime_type = mime_type
+        replacing.size_bytes = written
+        replacing.blob_sha256 = sha256_hex
+        replacing.mtime = utcnow()
+        file_row = replacing
+    else:
+        file_row = File(
+            id=new_id(),
+            owner_id=upload.user_id,
+            folder_id=upload.target_folder_id,
+            name=name,
+            extension=extension_of(name),
+            mime_type=mime_type,
+            size_bytes=written,
+            blob_sha256=sha256_hex,
+            mtime=utcnow(),
+        )
+        db.add(file_row)
     upload.state = "complete"
     upload.final_blob_sha256 = sha256_hex
     upload.final_file_id = file_row.id

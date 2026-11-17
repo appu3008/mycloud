@@ -52,6 +52,7 @@ class CompleteRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     filename: str | None = Field(default=None, max_length=512)
+    replace_file_id: str | None = Field(default=None, max_length=64)
 
 
 class FileInfo(BaseModel):

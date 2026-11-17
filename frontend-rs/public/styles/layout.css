@@ -439,3 +439,19 @@
 }
 
 .share-password { margin-bottom: 14px; }
+
+/* --- file version history ------------------------------------------------------ */
+
+.version-list { list-style: none; margin: 12px 0; padding: 0; }
+
+.version-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.version-row:first-child { border-top: 0; }
+.upload-version-btn { cursor: pointer; margin-top: 6px; }

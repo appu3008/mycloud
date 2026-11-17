@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.10.0 — File version history (2026-11-17)
+### Added
+- Uploading with `replace_file_id` archives the previous blob as a numbered
+  file version (20 per file, oldest pruned); identical content is a no-op.
+- `GET /api/v1/files/{id}/versions`, `GET .../versions/{id}/content`,
+  `POST .../versions/{id}/restore` (restore is itself versioned).
+- Files-page History modal: list versions, download old bytes, restore,
+  and upload a replacement from the same screen.
+
+### Verified
+- `pytest`: 83 passed (4 new version tests); wasm check + trunk build green.
+
+
 ## 0.9.0 — Backup jobs + Settings page (2026-11-17)
 ### Added
 - Admin-only backup jobs API: `POST/GET/DELETE /api/v1/backups/jobs`,

@@ -69,6 +69,7 @@ enum ModalState {
     Move,
     Rename { target_is_file: bool, id: String },
     Share { target_is_file: bool, id: String, name: String },
+    History { file_id: String, name: String },
 }
 
 fn drag_types(event: &DragEvent) -> Vec<String> {
@@ -188,6 +189,8 @@ pub fn files_page() -> Html {
     let drag_over_folder = use_state(|| None::<String>);
     let page_drag_over = use_state(|| false);
     let file_input_ref = use_node_ref();
+    let versions = use_state(Vec::<api::VersionItem>::new);
+    let versions_error = use_state(String::new);
 
     // --- listing -----------------------------------------------------------
 
@@ -295,7 +298,7 @@ pub fn files_page() -> Html {
                             patch_row(&chunk_patch, &chunk_row, |row| row.done = done);
                         })),
                     };
-                    match api::upload_file_resumable(&file, folder_id.as_deref(), hooks).await {
+                    match api::upload_file_resumable(&file, folder_id.as_deref(), hooks, None).await {
                         Ok(_) => patch_row(&finished_patch, &row_id, |row| {
                             row.state = UploadState::Completed;
                             row.done = row.total_chunks;
@@ -570,6 +573,79 @@ pub fn files_page() -> Html {
         })
     };
 
+    // --- version history ----------------------------------------------------
+
+    let load_versions = {
+        let versions = versions.clone();
+        let versions_error = versions_error.clone();
+        Callback::from(move |file_id: String| {
+            let versions = versions.clone();
+            let versions_error = versions_error.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                versions_error.set(String::new());
+                match api::list_versions(&file_id).await {
+                    Ok(list) => versions.set(list.items),
+                    Err(err) => versions_error.set(err.to_string()),
+                }
+            });
+        })
+    };
+
+    let restore_version = {
+        let busy = busy.clone();
+        let error = error.clone();
+        let modal = modal.clone();
+        let reload = reload.clone();
+        let load_versions = load_versions.clone();
+        Callback::from(move |(file_id, version_id): (String, String)| {
+            let busy = busy.clone();
+            let error = error.clone();
+            let modal = modal.clone();
+            let reload = reload.clone();
+            let load_versions = load_versions.clone();
+            busy.set(true);
+            error.set(String::new());
+            wasm_bindgen_futures::spawn_local(async move {
+                if let Err(err) = api::restore_version(&file_id, &version_id).await {
+                    error.set(err.to_string());
+                }
+                load_versions.emit(file_id);
+                reload();
+                modal.set(ModalState::None);
+                busy.set(false);
+            });
+        })
+    };
+
+    let replace_file = {
+        let busy = busy.clone();
+        let error = error.clone();
+        let modal = modal.clone();
+        let reload = reload.clone();
+        let load_versions = load_versions.clone();
+        Callback::from(move |(file, file_id): (web_sys::File, String)| {
+            let busy = busy.clone();
+            let error = error.clone();
+            let modal = modal.clone();
+            let reload = reload.clone();
+            let load_versions = load_versions.clone();
+            busy.set(true);
+            error.set(String::new());
+            wasm_bindgen_futures::spawn_local(async move {
+                let hooks = api::UploadHooks { on_reserved: None, on_chunk_done: None };
+                match api::upload_file_resumable(&file, None, hooks, Some(&file_id)).await {
+                    Ok(_) => {
+                        load_versions.emit(file_id);
+                        reload();
+                        modal.set(ModalState::None);
+                    }
+                    Err(err) => error.set(err.to_string()),
+                }
+                busy.set(false);
+            });
+        })
+    };
+
     // --- selection, sorting & drag ------------------------------------------
 
     let toggle_file = {
@@ -807,6 +883,19 @@ pub fn files_page() -> Html {
                 });
             })
         };
+        let history = {
+            let modal = modal.clone();
+            let load_versions = load_versions.clone();
+            let id = file.id.clone();
+            let name = file.name.clone();
+            Callback::from(move |_| {
+                load_versions.emit(id.clone());
+                modal.set(ModalState::History {
+                    file_id: id.clone(),
+                    name: name.clone(),
+                });
+            })
+        };
         let toggle = toggle_file.clone();
         let id = file.id.clone();
         html! {
@@ -823,6 +912,7 @@ pub fn files_page() -> Html {
                     <button class="ghost-btn mono-label" onclick={download}>{"Download"}</button>
                     <button class="ghost-btn mono-label" disabled={*busy} onclick={copy}>{"Copy"}</button>
                     <button class="ghost-btn mono-label" disabled={*busy} onclick={rename}>{"Rename"}</button>
+                    <button class="ghost-btn mono-label" disabled={*busy} onclick={history}>{"History"}</button>
                     <button class="ghost-btn mono-label" disabled={*busy} onclick={share}>{"Share"}</button>
                 </td>
             </tr>
@@ -1045,6 +1135,60 @@ pub fn files_page() -> Html {
                     })}
                 />
             </Modal>
+        },
+        ModalState::History { file_id, name } => {
+            let restore = restore_version.clone();
+            let replace = replace_file.clone();
+            let file_id_for_upload = file_id.clone();
+            let upload_change = Callback::from(move |event: yew::Event| {
+                let input: web_sys::HtmlInputElement = event.target_unchecked_into();
+                if let Some(file) = input.files().and_then(|list| list.get(0)) {
+                    replace.emit((file, file_id_for_upload.clone()));
+                }
+            });
+            html! {
+                <Modal title={format!("History \u{2014} {}", name)} on_close={close_modal.clone()}>
+                    <p class="modal-note">
+                        {"Uploading a new version keeps the previous content here. Old versions stay downloadable."}
+                    </p>
+                    {(!versions_error.is_empty()).then(|| html! {
+                        <div class="page-error">{(*versions_error).clone()}</div>
+                    })}
+                    <ul class="version-list">
+                        {for versions.iter().map(|version| {
+                            let restore = restore.clone();
+                            let id = file_id.clone();
+                            let version_id = version.id.clone();
+                            let id_for_link = id.clone();
+                            let do_restore = Callback::from(move |_| {
+                                restore.emit((id.clone(), version_id.clone()));
+                            });
+                            html! {
+                                <li key={version.id.clone()} class="version-row">
+                                    <span class="mono-label">{format!("v{}", version.version_number)}</span>
+                                    <span class="dim-cell">{human_size(version.size_bytes)}</span>
+                                    <span class="dim-cell">{format_date(&version.created_at, true)}</span>
+                                    <a class="ghost-btn mono-label"
+                                       href={format!("/api/v1/files/{}/versions/{}/content", id_for_link, version.id)}>
+                                        {"Download"}
+                                    </a>
+                                    <button class="ghost-btn mono-label" disabled={*busy}
+                                            onclick={do_restore}>{"Restore"}</button>
+                                </li>
+                            }
+                        })}
+                        {versions.is_empty().then(|| html! {
+                            <li class="version-row">
+                                <span class="dim-cell">{"No older versions. Upload a replacement to create one."}</span>
+                            </li>
+                        })}
+                    </ul>
+                    <label class="upload-version-btn primary-btn">
+                        <span class="mono-label">{"Upload new version"}</span>
+                        <input type="file" onchange={upload_change} hidden={true} />
+                    </label>
+                </Modal>
+            }
         },
         ModalState::Share { target_is_file, name, .. } => {
             let share_link = (*share_result).as_ref().map(|created| {

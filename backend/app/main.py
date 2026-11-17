@@ -27,6 +27,7 @@ from .api import public as public_api
 from .api import shares as shares_api
 from .api import trash as trash_api
 from .api import uploads as uploads_api
+from .api import versions as versions_api
 from .core.config import get_settings
 from .core.database import database_status
 
@@ -86,6 +87,7 @@ def register_routes(app: FastAPI) -> None:
     app.include_router(public_api.router, prefix="/api/v1")
     app.include_router(activity_api.router, prefix="/api/v1")
     app.include_router(backups_api.router, prefix="/api/v1")
+    app.include_router(versions_api.router, prefix="/api/v1")
 
     @app.get("/", include_in_schema=False)
     def index() -> dict:
