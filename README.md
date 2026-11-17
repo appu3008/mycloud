@@ -7,13 +7,11 @@ content-addressed deduplicating storage with versioning and soft deletion.
 
 ## Screenshots
 
-| Login (dark) | Overview (dark) |
+| Overview (dark) | My Files (dark) |
 |---|---|
-| ![Login screen, dark theme](docs/screenshots/shot-login-dark.png) | ![Overview dashboard, dark theme](docs/screenshots/shot-overview-dark.png) |
+| ![Overview dashboard, dark theme](docs/screenshots/shot-overview-dark.png) | ![My Files, dark theme](docs/screenshots/shot-files-dark.png) |
 
-| My Files (dark) | My Files (light) |
-|---|---|
-| ![My Files, dark theme](docs/screenshots/shot-files-dark.png) | ![My Files, light theme](docs/screenshots/shot-files-light.png) |
+More captures (login screen, light theme) live in [`docs/screenshots/`](docs/screenshots/).
 
 ## Quickstart (development)
 ```bash
