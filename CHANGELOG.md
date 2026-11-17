@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.6.0 — Recycle bin (2026-11-17)
+### Added
+- Trash API (`/api/v1/trash`): list top-level deleted items, batch restore,
+  permanent delete (`purge`, per-item or whole bin). Files inside a deleted
+  folder restore/purge with the folder; listing and storage math count every
+  soft-deleted file.
+- Purge releases blob refcounts properly: FileVersion/Favorite rows are
+  removed first, completed upload records are detached, file rows flushed,
+  then blobs that hit zero references are deleted from the database and disk
+  (deduplicated blobs stay while any copy survives).
+- Recycle Bin page in the Rust frontend (`frontend-rs/src/pages/trash.rs`,
+  route `/recycle`): deleted folders + files table (name/type/size/deleted),
+  per-row and batch Restore, confirm-gated Delete forever (single, selected,
+  or Empty bin), honest empty state, storage-held readout.
+
+### Verified
+- `pytest`: 55 passed (8 new recycle-bin tests: listing, cascade restore,
+  409 for files inside deleted folders, purge removes row + blob + physical
+  bytes, dedup keeps shared blobs, empty bin, CSRF + unknown-id 404).
+- `cargo check --target wasm32-unknown-unknown`: clean;
+  `trunk build --release`: success.
+- `/recycle` screenshot-verified in dark and light themes against the mock
+  API at 1920x1080.
+
 ## 0.5.0 — Frontend rewrite in Rust (2026-11-16)
 ### Added
 - `frontend-rs/`: the web frontend rewritten in Rust with Yew 0.23 +

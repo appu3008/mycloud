@@ -288,6 +288,82 @@ pub struct BatchReport {
     pub updated: i64,
 }
 
+// --- trash (recycle bin) -----------------------------------------------------
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct TrashFile {
+    pub id: String,
+    pub name: String,
+    pub extension: String,
+    pub mime_type: String,
+    pub size_bytes: u64,
+    pub folder_id: Option<String>,
+    pub mtime: String,
+    pub deleted_at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct TrashFolder {
+    pub id: String,
+    pub parent_id: Option<String>,
+    pub name: String,
+    pub path: String,
+    pub deleted_at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct TrashPayload {
+    pub files: Vec<TrashFile>,
+    pub folders: Vec<TrashFolder>,
+    pub total_bytes: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct TrashCounts {
+    pub files: i64,
+    pub folders: i64,
+    #[serde(default)]
+    pub bytes_freed: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct RestoreReport {
+    pub restored: TrashCounts,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct PurgeReport {
+    pub purged: TrashCounts,
+}
+
+pub async fn trash() -> Result<TrashPayload, ApiError> {
+    get("/v1/trash").await
+}
+
+pub async fn restore_from_trash(
+    file_ids: &[String],
+    folder_ids: &[String],
+) -> Result<RestoreReport, ApiError> {
+    send_json(
+        "/v1/trash/restore",
+        "POST",
+        &serde_json::json!({ "file_ids": file_ids, "folder_ids": folder_ids }),
+    )
+    .await
+}
+
+pub async fn purge_trash(
+    file_ids: &[String],
+    folder_ids: &[String],
+) -> Result<PurgeReport, ApiError> {
+    send_json(
+        "/v1/trash/purge",
+        "POST",
+        &serde_json::json!({ "mode": "items", "file_ids": file_ids, "folder_ids": folder_ids }),
+    )
+    .await
+}
+
 // --- auth --------------------------------------------------------------------
 
 pub async fn me() -> Result<MyCloudUser, ApiError> {

@@ -20,6 +20,7 @@ use crate::pages::files::FilesPage;
 use crate::pages::login::LoginPage;
 use crate::pages::overview::OverviewPage;
 use crate::pages::placeholder::PlaceholderPage;
+use crate::pages::trash::TrashPage;
 use crate::theme::Theme;
 
 // Icon paths (served from public/assets/figma, same files as the React app).
@@ -148,6 +149,7 @@ fn app() -> Html {
                             let page = match route {
                                 Route::Overview => html! { <OverviewPage display_name={display_name} /> },
                                 Route::Files => html! { <FilesPage /> },
+                                Route::Recycle => html! { <TrashPage /> },
                                 _ => html! { <PlaceholderPage /> },
                             };
                             html! {
