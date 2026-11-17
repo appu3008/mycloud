@@ -46,20 +46,20 @@ superseded by `frontend-rs/` and no longer part of the build.
 | 1 | Foundation: env report, scaffold, docs | **done** |
 | 2 | Database models + auth (Argon2id, sessions, CSRF) | **done** |
 | 3 | Storage engine (chunked resumable uploads, blobs) | **done** |
-| 4 | File manager frontend (Rust/Yew) | **done** |
-| 5 | Photo/video system | pending |
-| 6 | Recycle bin + versioning | pending |
-| 7 | Duplicate detection | pending |
-| 8 | Sharing | pending |
-| 9 | Devices + sync | pending |
-| 10 | Android backup client path | pending |
-| 11 | Storage analytics + monitoring | pending |
-| 12 | Administration + activity | pending |
-| 13 | Optional E2E encryption | pending |
-| 14 | Backup/recovery jobs | pending |
-| 15 | Security test suite | pending |
-| 16 | Remote connectivity (Tailscale) | pending |
-| 17 | Production deployment | pending |
+| 4 | File manager frontend (Rust/Yew) + Figma screens | **done** |
+| 5 | Folders & batch operations (hierarchy, batch APIs, DnD) | **done** |
+| 6 | Recycle bin UI + version history | partial (soft-delete, cascade restore + retention pending) |
+| 7 | Photo/video system (albums, thumbnails, streaming) | pending |
+| 8 | Duplicate detection | pending |
+| 9 | Sharing | pending |
+| 10 | Devices + sync | pending |
+| 11 | Android backup client path | pending |
+| 12 | Storage analytics + monitoring | pending |
+| 13 | Administration + activity | pending |
+| 14 | Optional E2E encryption | pending |
+| 15 | Backup/recovery jobs | pending |
+| 16 | Security test suite | pending |
+| 17 | Remote connectivity (Tailscale) + production deployment | pending |
 
 Docs: `ARCHITECTURE.md` · `DATABASE.md` · `API.md` · `SECURITY.md` ·
 `DEPLOYMENT.md` · `BACKUP_AND_RESTORE.md` · `CHANGELOG.md` · `docs/`.
