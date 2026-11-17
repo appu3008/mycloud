@@ -8,4 +8,5 @@ pub mod overview;
 pub mod placeholder;
 pub mod share_view;
 pub mod shared;
+pub mod settings;
 pub mod trash;

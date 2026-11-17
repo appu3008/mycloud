@@ -57,7 +57,7 @@ superseded by `frontend-rs/` and no longer part of the build.
 | 12 | Storage analytics + monitoring | **usage + duplicates done** (jobs/alerts pending) |
 | 13 | Administration + activity | **activity done** (admin console pending) |
 | 14 | Optional E2E encryption | pending |
-| 15 | Backup/recovery jobs | pending |
+| 15 | Backup/recovery jobs | **done** (manual runs; cron not in-process yet) |
 | 16 | Security test suite | pending |
 | 17 | Remote connectivity (Tailscale) + production deployment | pending |
 

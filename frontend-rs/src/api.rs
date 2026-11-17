@@ -536,6 +536,68 @@ pub async fn activity(page: i64, limit: i64) -> Result<ActivityList, ApiError> {
     get(&format!("/v1/activity?page={page}&limit={limit}")).await
 }
 
+// --- backups -------------------------------------------------------------------
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct BackupJob {
+    pub id: String,
+    pub name: String,
+    pub target_path: String,
+    pub include_content_blobs: bool,
+    pub retention_count: i64,
+    pub schedule_cron: Option<String>,
+    pub enabled: bool,
+    pub backup_count: i64,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct BackupJobList {
+    pub items: Vec<BackupJob>,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct BackupRun {
+    pub id: String,
+    pub job_id: String,
+    pub size_bytes: u64,
+    pub state: String,
+    pub destination: String,
+    pub started_at: String,
+    pub finished_at: Option<String>,
+}
+
+pub async fn list_backup_jobs() -> Result<BackupJobList, ApiError> {
+    get("/v1/backups/jobs").await
+}
+
+pub async fn create_backup_job(
+    name: &str,
+    target_path: Option<&str>,
+    include_content_blobs: bool,
+    retention_count: i64,
+) -> Result<BackupJob, ApiError> {
+    send_json(
+        "/v1/backups/jobs",
+        "POST",
+        &serde_json::json!({
+            "name": name,
+            "target_path": target_path,
+            "include_content_blobs": include_content_blobs,
+            "retention_count": retention_count,
+        }),
+    )
+    .await
+}
+
+pub async fn run_backup_job(job_id: &str) -> Result<BackupRun, ApiError> {
+    send_json(&format!("/v1/backups/jobs/{job_id}/run"), "POST", &serde_json::json!({})).await
+}
+
+pub async fn delete_backup_job(job_id: &str) -> Result<(), ApiError> {
+    send_json_unit(&format!("/v1/backups/jobs/{job_id}"), "DELETE", &serde_json::json!({})).await
+}
+
 // --- auth --------------------------------------------------------------------
 
 pub async fn me() -> Result<MyCloudUser, ApiError> {

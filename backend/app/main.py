@@ -20,6 +20,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from .api import auth as auth_api
 from .api import activity as activity_api
 from .api import analytics as analytics_api
+from .api import backups as backups_api
 from .api import files as files_api
 from .api import folders as folders_api
 from .api import public as public_api
@@ -84,6 +85,7 @@ def register_routes(app: FastAPI) -> None:
     app.include_router(shares_api.router, prefix="/api/v1")
     app.include_router(public_api.router, prefix="/api/v1")
     app.include_router(activity_api.router, prefix="/api/v1")
+    app.include_router(backups_api.router, prefix="/api/v1")
 
     @app.get("/", include_in_schema=False)
     def index() -> dict:

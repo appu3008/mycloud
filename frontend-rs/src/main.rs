@@ -25,6 +25,7 @@ use crate::pages::monitor::MonitorPage;
 use crate::pages::shared::SharedPage;
 use crate::pages::share_view::ShareViewPage;
 use crate::pages::activity::ActivityPage;
+use crate::pages::settings::SettingsPage;
 use crate::theme::Theme;
 
 // Icon paths (served from public/assets/figma, same files as the React app).
@@ -167,6 +168,7 @@ fn app() -> Html {
                                 Route::Monitor => html! { <MonitorPage /> },
                                 Route::Shared => html! { <SharedPage /> },
                                 Route::Activity => html! { <ActivityPage /> },
+                                Route::Settings => html! { <SettingsPage /> },
                                 _ => html! { <PlaceholderPage /> },
                             };
                             html! {

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.9.0 — Backup jobs + Settings page (2026-11-17)
+### Added
+- Admin-only backup jobs API: `POST/GET/DELETE /api/v1/backups/jobs`,
+  `POST .../jobs/{id}/run`, `GET .../jobs/{id}/backups`.
+- Backup runs write a self-contained snapshot folder: consistent SQLite
+  online snapshot, physical blob copies (optional), and a hashed
+  `manifest.json` inventory; runs are verified and old runs pruned by
+  retention count.
+- Settings page (`/settings`): create/list/run/delete backup jobs, with an
+  honest note that cron scheduling is stored but not executed in-process.
+
+### Verified
+- `pytest`: 79 passed (4 new backup tests); `trunk build --release` green.
+
 ## 0.8.0 — Activity timeline (2026-11-17)
 ### Added
 - `GET /api/v1/activity`: the signed-in user's event feed, paginated.
