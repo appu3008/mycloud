@@ -19,6 +19,8 @@ pub fn settings_page() -> Html {
     let admin_overview = use_state(|| None::<serde_json::Value>);
     let admin_users = use_state(Vec::<serde_json::Value>::new);
     let admin_audit = use_state(Vec::<serde_json::Value>::new);
+    let passphrase = use_state(String::new);
+    let e2e_notice = use_state(String::new);
 
     let reload = {
         let jobs = jobs.clone();
@@ -229,6 +231,87 @@ pub fn settings_page() -> Html {
         })
     };
 
+    let passphrase_input = {
+        let passphrase = passphrase.clone();
+        Callback::from(move |event: yew::InputEvent| {
+            let input: web_sys::HtmlInputElement = event.target_unchecked_into();
+            passphrase.set(input.value());
+        })
+    };
+
+    let vault_upload = {
+        let passphrase = passphrase.clone();
+        let e2e_notice = e2e_notice.clone();
+        let busy = busy.clone();
+        Callback::from(move |event: yew::Event| {
+            let input: web_sys::HtmlInputElement = event.target_unchecked_into();
+            let file = match input.files().and_then(|list| list.get(0)) {
+                Some(file) => file,
+                None => return,
+            };
+            let passphrase = (*passphrase).clone();
+            let e2e_notice = e2e_notice.clone();
+            let busy = busy.clone();
+            busy.set(true);
+            e2e_notice.set("Encrypting locally\u{2026}".to_string());
+            wasm_bindgen_futures::spawn_local(async move {
+                let result = async {
+                    let plain = api::read_whole_file(&file).await.map_err(|err| err.to_string())?;
+                    let envelope = crate::e2e::encrypt(&passphrase, &plain)
+                        .await
+                        .map_err(|err| err.to_string())?;
+                    let name = format!("{}.vault", file.name());
+                    let uploaded = api::upload_bytes(&name, &envelope).await.map_err(|err| err.to_string())?;
+                    Ok::<String, String>(uploaded.name)
+                }
+                .await;
+                match result {
+                    Ok(name) => e2e_notice.set(format!(
+                        "Uploaded {name} \u{2014} the server only stored ciphertext."
+                    )),
+                    Err(err) => e2e_notice.set(format!("Encryption failed: {err}")),
+                }
+                busy.set(false);
+            });
+        })
+    };
+
+    let vault_download = {
+        let passphrase = passphrase.clone();
+        let e2e_notice = e2e_notice.clone();
+        let busy = busy.clone();
+        Callback::from(move |event: yew::Event| {
+            let input: web_sys::HtmlInputElement = event.target_unchecked_into();
+            let file = match input.files().and_then(|list| list.get(0)) {
+                Some(file) => file,
+                None => return,
+            };
+            let passphrase = (*passphrase).clone();
+            let e2e_notice = e2e_notice.clone();
+            let busy = busy.clone();
+            busy.set(true);
+            e2e_notice.set("Decrypting locally\u{2026}".to_string());
+            wasm_bindgen_futures::spawn_local(async move {
+                let result = async {
+                    let envelope = api::read_whole_file(&file).await.map_err(|err| err.to_string())?;
+                    let plain = crate::e2e::decrypt(&passphrase, &envelope)
+                        .await
+                        .map_err(|err| err.to_string())?;
+                    let name = file.name().strip_suffix(".vault").unwrap_or("decrypted").to_string();
+                    crate::e2e::download_bytes(&name, &plain)
+                        .map_err(|err| err.to_string())?;
+                    Ok::<String, String>(name)
+                }
+                .await;
+                match result {
+                    Ok(name) => e2e_notice.set(format!("Decrypted {name} in your browser.")),
+                    Err(err) => e2e_notice.set(format!("Decryption failed: {err}")),
+                }
+                busy.set(false);
+            });
+        })
+    };
+
     let admin_view = match admin_overview.as_ref() {
         Some(overview) => {
             let user_rows: Html = admin_users.iter().map(|user| {
@@ -377,6 +460,35 @@ pub fn settings_page() -> Html {
                     {"Recovery: restore the snapshot database file and copy the blobs"}
                     {" back into the storage root \u{2014} the manifest lists every blob."}
                 </p>
+            </section>
+
+            <section class="card recent-card">
+                <div class="recent-head">
+                    <span class="mono-label">{"End-to-end encrypted vault"}</span>
+                    <span class="mono-label hint">{"optional \u{00B7} browser-only keys"}</span>
+                </div>
+                <p class="modal-note">
+                    {"Files are encrypted here with PBKDF2-SHA-256 (250k rounds) + AES-256-GCM before upload."}
+                    {" The passphrase is never sent to the server, and there is no key recovery."}
+                </p>
+                <div class="settings-form">
+                    <label class="modal-field">
+                        {"Vault passphrase"}
+                        <input type="password" value={(*passphrase).clone()}
+                               oninput={passphrase_input} placeholder="At least 8 characters" />
+                    </label>
+                    <label class="upload-version-btn primary-btn">
+                        <span class="mono-label">{"Encrypt + upload"}</span>
+                        <input type="file" disabled={*busy} onchange={vault_upload} hidden={true} />
+                    </label>
+                    <label class="upload-version-btn ghost-btn">
+                        <span class="mono-label">{"Decrypt .vault file"}</span>
+                        <input type="file" disabled={*busy} onchange={vault_download} hidden={true} />
+                    </label>
+                </div>
+                {(!e2e_notice.is_empty()).then(|| html! {
+                    <p class="settings-note">{(*e2e_notice).clone()}</p>
+                })}
             </section>
 
             {admin_view}

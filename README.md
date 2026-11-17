@@ -56,9 +56,9 @@ superseded by `frontend-rs/` and no longer part of the build.
 | 11 | Android backup client path | **done** (documented protocol + API; no APK shipped) |
 | 12 | Storage analytics + monitoring | **done** (usage, duplicates, quota alerts) |
 | 13 | Administration + activity | **done** |
-| 14 | Optional E2E encryption | pending |
+| 14 | Optional E2E encryption | **done** (browser vault; client-only keys) |
 | 15 | Backup/recovery jobs | **done** (manual runs; cron not in-process yet) |
-| 16 | Security test suite | pending |
+| 16 | Security test suite | **done** |
 | 17 | Remote connectivity (Tailscale) + production deployment | pending |
 
 Docs: `ARCHITECTURE.md` · `DATABASE.md` · `API.md` · `SECURITY.md` ·

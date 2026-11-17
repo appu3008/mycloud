@@ -4,6 +4,7 @@
 
 mod api;
 mod auth;
+mod e2e;
 mod folder_picker;
 mod layout;
 mod modal;

@@ -40,4 +40,10 @@ web-sys = { version = "0.3", features = [
   "SubmitEvent",
   "Navigator",
   "Clipboard",
+  "Crypto",
+  "CryptoKey",
+  "SubtleCrypto",
+  "Url",
+  "Blob",
+  "HtmlAnchorElement",
 ] }

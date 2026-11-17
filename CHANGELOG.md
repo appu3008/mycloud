@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.14.0 — Security suite + optional E2E vault (2026-11-17)
+### Added
+- Consolidated security regression suite (9 tests): hashed session/share
+  tokens at rest, Argon2id password hashes, CSRF on all newer mutations,
+  RBAC on admin/backup APIs, ownership isolation across versions/media/
+  albums/devices/shares, injection-like names as literal data, and revoked
+  share behavior.
+- Optional client-side E2E vault (Settings): PBKDF2-SHA-256 (250k) ->
+  AES-256-GCM encryption in WebCrypto before upload; `.vault` envelope
+  `MYCE1 | salt | iv | ciphertext`; decrypt-and-download in the browser.
+  Passphrase/plaintext never reach the server. `docs/E2E_VAULT.md` documents
+  scope and limitations (no key recovery, metadata still visible).
+
+### Verified
+- `pytest`: 108 passed (9 new security tests); wasm check + trunk build green.
+
+
 ## 0.13.0 — Quota alerts + admin console (2026-11-17)
 ### Added
 - Quota alerts: per-user threshold from `storage_quotas`, one unread

@@ -1070,6 +1070,43 @@ pub async fn upload_file_resumable(
     .await
 }
 
+/// Upload raw bytes as a resumable upload (used by the E2E vault: the server
+/// only ever sees ciphertext). Chunk SHA-256 headers are computed locally.
+pub async fn upload_bytes(filename: &str, data: &[u8]) -> Result<CompletedUpload, ApiError> {
+    let reserved: UploadReserved = send_json(
+        "/v1/uploads",
+        "POST",
+        &serde_json::json!({
+            "filename": filename,
+            "size_bytes": data.len(),
+            "target_folder_id": null,
+            "chunk_size_mb": 1,
+        }),
+    )
+    .await?;
+    let chunk_size = reserved.chunk_size as usize;
+    for (index, chunk) in data.chunks(chunk_size.max(1)).enumerate() {
+        let digest = sha2::Sha256::digest(chunk);
+        put_bytes(
+            &format!("/v1/uploads/{}/chunks/{}", reserved.upload_id, index + 1),
+            chunk,
+            ("X-Chunk-Sha256", hex_encode(&digest)),
+        )
+        .await?;
+    }
+    send_json(
+        &format!("/v1/uploads/{}/complete", reserved.upload_id),
+        "POST",
+        &serde_json::json!({}),
+    )
+    .await
+}
+
+/// Read an entire browser File into memory (only used for E2E vault files).
+pub async fn read_whole_file(file: &web_sys::File) -> Result<Vec<u8>, ApiError> {
+    read_file_slice(file, 0, file.size() as u64).await
+}
+
 fn hex_encode(bytes: &[u8]) -> String {
     let mut out = String::with_capacity(bytes.len() * 2);
     for byte in bytes {
