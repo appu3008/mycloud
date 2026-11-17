@@ -516,6 +516,26 @@ pub fn download_public_share(token: &str, password: Option<&str>, item_id: Optio
     let _ = window.open_with_url_and_target(&url, "_self");
 }
 
+// --- activity timeline ----------------------------------------------------------
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ActivityItem {
+    pub id: String,
+    pub kind: String,
+    pub summary: String,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ActivityList {
+    pub items: Vec<ActivityItem>,
+    pub total: i64,
+}
+
+pub async fn activity(page: i64, limit: i64) -> Result<ActivityList, ApiError> {
+    get(&format!("/v1/activity?page={page}&limit={limit}")).await
+}
+
 // --- auth --------------------------------------------------------------------
 
 pub async fn me() -> Result<MyCloudUser, ApiError> {

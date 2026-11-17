@@ -312,3 +312,22 @@
 }
 
 .dupe-items li:first-child { border-top: 0; }
+
+/* --- activity timeline ---------------------------------------------------------- */
+
+.activity-list { gap: 0; }
+
+.activity-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+}
+
+.activity-row:first-child { border-top: 0; }
+
+.activity-when { flex: 0 0 110px; color: var(--muted); }
+.activity-summary { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.activity-summary { flex: 1; text-align: left; min-width: 0; }

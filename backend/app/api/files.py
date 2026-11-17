@@ -19,7 +19,7 @@ from ..models import ContentBlob, File, User, new_id, utcnow
 from ..models import Session as SessionRow
 from ..schemas.folders import FileBatch, FileRename
 from ..schemas.uploads import FileInfo
-from ..services import file_service, folder_service
+from ..services import activity_service, file_service, folder_service
 from ..services.upload_service import UploadRejected
 from ..storage import blob_store
 from ..storage.mime import extension_of
@@ -245,8 +245,18 @@ def batch_files(
         elif body.action == "delete":
             if row.deleted_at is None:
                 file_service.soft_delete_file(db, row)
+                activity_service.log_event(
+                    db, user_id=user.id, kind="delete",
+                    summary=f"Moved \u201c{row.name}\u201d to the recycle bin",
+                    file_id=row.id,
+                )
         elif body.action == "restore":
             file_service.restore_file(db, row)
+            activity_service.log_event(
+                db, user_id=user.id, kind="restore",
+                summary=f"Restored \u201c{row.name}\u201d",
+                file_id=row.id,
+            )
         elif body.action == "favorite":
             row.is_favorite = True
         elif body.action == "unfavorite":

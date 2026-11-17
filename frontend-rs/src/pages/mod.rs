@@ -1,5 +1,6 @@
 //! Page components.
 
+pub mod activity;
 pub mod files;
 pub mod login;
 pub mod monitor;

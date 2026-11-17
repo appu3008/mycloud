@@ -26,7 +26,7 @@ from ..schemas.uploads import (
     UploadReserved,
     UploadState,
 )
-from ..services import upload_service
+from ..services import activity_service, upload_service
 from ..services.upload_service import UploadRejected
 from .dependencies import (
     csrf_protected_auth,  # for mutating endpoints
@@ -172,6 +172,12 @@ def complete_upload(
     except UploadRejected as exc:
         db.rollback()
         raise _failure(exc.code, exc.detail) from exc
+    activity_service.log_event(
+        db, user_id=user.id, kind="upload",
+        summary=f"Uploaded \u201c{file_row.name}\u201d",
+        file_id=file_row.id,
+    )
+    db.commit()
     return FileInfo.model_validate(file_row)
 
 

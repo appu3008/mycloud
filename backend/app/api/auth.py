@@ -32,7 +32,7 @@ from ..schemas.auth import (
 )
 from ..security import audit
 from ..security.password import hash_password, verify_password
-from ..services import auth_service, init_service
+from ..services import activity_service, auth_service, init_service
 from .dependencies import csrf_protected_auth, get_current_auth, get_request_ip
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -116,6 +116,9 @@ def login(
         actor_email=user.email,
         actor_ip=ip,
     )
+    activity_service.log_event(
+        db, user_id=user.id, kind="login", summary=f"Signed in from {ip}"
+    )
     db.commit()
     return LoginSuccess(csrf_token=session_row.csrf_token, user=UserInfo.model_validate(user))
 
@@ -137,6 +140,7 @@ def logout(
             actor_user_id=user.id,
             actor_ip=get_request_ip(request),
         )
+        activity_service.log_event(db, user_id=user.id, kind="logout", summary="Signed out")
         db.commit()
     response.delete_cookie(get_settings().session_cookie_name, path="/")
     return {"ok": True}

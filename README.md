@@ -55,7 +55,7 @@ superseded by `frontend-rs/` and no longer part of the build.
 | 10 | Devices + sync | pending |
 | 11 | Android backup client path | pending |
 | 12 | Storage analytics + monitoring | **usage + duplicates done** (jobs/alerts pending) |
-| 13 | Administration + activity | pending |
+| 13 | Administration + activity | **activity done** (admin console pending) |
 | 14 | Optional E2E encryption | pending |
 | 15 | Backup/recovery jobs | pending |
 | 16 | Security test suite | pending |

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.8.0 — Activity timeline (2026-11-17)
+### Added
+- `GET /api/v1/activity`: the signed-in user's event feed, paginated.
+- Events recorded at real actions only: sign-in/out, upload completion,
+  batch delete/restore, share create + downloads, recycle-bin restore and
+  permanent delete.
+- Activity page (`/activity`): newest-first timeline with kind chips and
+  pagination; honest empty state.
+
+### Verified
+- `pytest`: 75 passed (4 new activity tests).
+- `trunk build --release` green; `/activity` screenshot-verified dark.
+
 ## 0.7.0 — Duplicate detection, storage analytics, sharing (2026-11-17)
 ### Added
 - Analytics API: `GET /api/v1/storage/usage` (live usage vs quota, counts)

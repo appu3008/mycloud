@@ -20,7 +20,7 @@ from ..schemas.trash import (
     TrashPurge,
     TrashRestore,
 )
-from ..services import trash_service
+from ..services import activity_service, trash_service
 from .dependencies import csrf_protected_auth, get_current_auth
 
 router = APIRouter(prefix="/trash", tags=["trash"])
@@ -64,6 +64,11 @@ def restore(
         file_ids=body.file_ids,
         folder_ids=body.folder_ids,
     )
+    if counts["files"] or counts["folders"]:
+        activity_service.log_event(
+            db, user_id=user.id, kind="restore",
+            summary=f"Restored {counts['files']} file(s), {counts['folders']} folder(s) from the bin",
+        )
     db.commit()
     return {"restored": counts}
 
@@ -84,5 +89,11 @@ def purge(
         file_ids=body.file_ids,
         folder_ids=body.folder_ids,
     )
+    if counts["files"] or counts["folders"]:
+        activity_service.log_event(
+            db, user_id=user.id, kind="delete",
+            summary=f"Permanently deleted {counts['files']} file(s), {counts['folders']} folder(s)"
+                    + (f" ({counts['bytes_freed'] // 1024} KiB freed)" if counts["bytes_freed"] else ""),
+        )
     db.commit()
     return {"purged": counts}
