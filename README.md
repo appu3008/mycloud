@@ -5,6 +5,16 @@ storage engine, your database, your server. Python 3.14 / FastAPI / SQLAlchemy 2
 SQLite (WAL) backend, Rust (Yew/WASM) frontend, Argon2id auth,
 content-addressed deduplicating storage with versioning and soft deletion.
 
+## Screenshots
+
+| Login (dark) | Overview (dark) |
+|---|---|
+| ![Login screen, dark theme](docs/screenshots/shot-login-dark.png) | ![Overview dashboard, dark theme](docs/screenshots/shot-overview-dark.png) |
+
+| My Files (dark) | My Files (light) |
+|---|---|
+| ![My Files, dark theme](docs/screenshots/shot-files-dark.png) | ![My Files, light theme](docs/screenshots/shot-files-light.png) |
+
 ## Quickstart (development)
 ```bash
 cd ~/mycloud
