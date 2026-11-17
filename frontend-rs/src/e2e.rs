@@ -98,15 +98,15 @@ pub async fn encrypt(passphrase: &str, plaintext: &[u8]) -> Result<Vec<u8>, Stri
     let iv = random(IV_BYTES)?;
     let key = derive_key(&subtle, passphrase, &salt).await?;
 
-    let params = Object::new();
-    set(&params, "name", &JsValue::from_str("AES-GCM"))?;
-    set(&params, "iv", &bytes(&iv))?;
-    set(&params, "tagLength", &JsValue::from_f64(128.0))?;
+    let algorithm = Object::new();
+    set(&algorithm, "name", &JsValue::from_str("AES-GCM"))?;
+    set(&algorithm, "iv", &bytes(&iv))?;
+    set(&algorithm, "tagLength", &JsValue::from_f64(128.0))?;
 
     let ciphertext = to_vec(
         JsFuture::from(
             subtle
-                .encrypt_with_str_and_buffer_source("AES-GCM", &key, &params)
+                .encrypt_with_object_and_buffer_source(&algorithm, &key, &bytes(plaintext))
                 .map_err(|_| "encryption failed".to_string())?,
         )
         .await
@@ -158,15 +158,15 @@ pub async fn decrypt(passphrase: &str, envelope: &[u8]) -> Result<Vec<u8>, Strin
 
     let subtle = subtle()?;
     let key = derive_key(&subtle, passphrase, salt).await?;
-    let params = Object::new();
-    set(&params, "name", &JsValue::from_str("AES-GCM"))?;
-    set(&params, "iv", &bytes(iv))?;
-    set(&params, "tagLength", &JsValue::from_f64(128.0))?;
+    let algorithm = Object::new();
+    set(&algorithm, "name", &JsValue::from_str("AES-GCM"))?;
+    set(&algorithm, "iv", &bytes(iv))?;
+    set(&algorithm, "tagLength", &JsValue::from_f64(128.0))?;
 
     to_vec(
         JsFuture::from(
             subtle
-                .decrypt_with_str_and_buffer_source("AES-GCM", &key, &params)
+                .decrypt_with_object_and_buffer_source(&algorithm, &key, &bytes(ciphertext))
                 .map_err(|_| "decryption failed".to_string())?,
         )
         .await

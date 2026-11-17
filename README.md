@@ -60,6 +60,8 @@ superseded by `frontend-rs/` and no longer part of the build.
 | 15 | Backup/recovery jobs | **done** (manual runs; cron not in-process yet) |
 | 16 | Security test suite | **done** |
 | 17 | Remote connectivity (Tailscale) + production deployment | **done** (documented; no host network changes) |
+| 18 | Hosting app manager (multiple sites/apps behind nginx) | **done** (config staged; sudo apply by operator) |
+| 19 | Own-network auditing (authorized private scans) | **done** (admin-only, audited) |
 
-Docs: `ARCHITECTURE.md` · `DATABASE.md` · `API.md` · `SECURITY.md` ·
+Docs: `HOSTING.md` · `NETWORK_AUDIT.md` · `ANDROID_CLIENT.md` · `E2E_VAULT.md` · `ARCHITECTURE.md` · `DATABASE.md` · `API.md` · `SECURITY.md` ·
 `DEPLOYMENT.md` · `BACKUP_AND_RESTORE.md` · `CHANGELOG.md` · `docs/`.

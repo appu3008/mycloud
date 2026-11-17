@@ -797,6 +797,175 @@ pub async fn delete_backup_job(job_id: &str) -> Result<(), ApiError> {
     send_json_unit(&format!("/v1/backups/jobs/{job_id}"), "DELETE", &serde_json::json!({})).await
 }
 
+// --- hosting app manager ------------------------------------------------------------
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct HostedApp {
+    pub id: String,
+    pub name: String,
+    pub kind: String,
+    pub domain: String,
+    pub path_prefix: String,
+    pub upstream_port: Option<i64>,
+    pub root_path: Option<String>,
+    pub enabled: bool,
+    pub description: String,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct HostedAppList {
+    pub items: Vec<HostedApp>,
+}
+
+pub async fn hosted_apps() -> Result<HostedAppList, ApiError> {
+    get("/v1/hosting/apps").await
+}
+
+pub async fn create_hosted_app(
+    name: &str,
+    kind: &str,
+    domain: &str,
+    path_prefix: &str,
+    upstream_port: Option<i64>,
+) -> Result<HostedApp, ApiError> {
+    send_json(
+        "/v1/hosting/apps",
+        "POST",
+        &serde_json::json!({
+            "name": name, "kind": kind, "domain": domain,
+            "path_prefix": path_prefix, "upstream_port": upstream_port,
+        }),
+    )
+    .await
+}
+
+pub async fn update_hosted_app(app_id: &str, patch: &serde_json::Value) -> Result<(), ApiError> {
+    send_json_unit(&format!("/v1/hosting/apps/{app_id}"), "PATCH", &patch).await
+}
+
+pub async fn delete_hosted_app(app_id: &str) -> Result<(), ApiError> {
+    send_json_unit(&format!("/v1/hosting/apps/{app_id}"), "DELETE", &serde_json::json!({})).await
+}
+
+pub async fn hosting_config_preview() -> Result<String, ApiError> {
+    let payload: serde_json::Value = get("/v1/hosting/config/preview").await?;
+    Ok(payload["config"].as_str().unwrap_or("").to_string())
+}
+
+pub async fn stage_hosting_config() -> Result<String, ApiError> {
+    let payload: serde_json::Value = send_json(
+        "/v1/hosting/config/stage", "POST", &serde_json::json!({}),
+    )
+    .await?;
+    Ok(payload["config"].as_str().unwrap_or("").to_string())
+}
+
+pub async fn write_static_file(app_id: &str, path: &str, content: &str) -> Result<(), ApiError> {
+    send_json_unit(
+        &format!("/v1/hosting/apps/{app_id}/files"),
+        "PUT",
+        &serde_json::json!({"path": path, "content": content}),
+    )
+    .await
+}
+
+// --- own-network auditing -----------------------------------------------------------
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ScanScope {
+    pub id: String,
+    pub name: String,
+    pub cidr: String,
+    pub authorized_until: Option<String>,
+    pub enabled: bool,
+    pub notes: String,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ScanFinding {
+    pub id: String,
+    pub port: i64,
+    pub service: String,
+    pub severity: String,
+    pub summary: String,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct NetworkScan {
+    pub id: String,
+    pub scope_id: String,
+    pub target: String,
+    pub ports: String,
+    pub state: String,
+    pub findings_count: i64,
+    pub initiated_by: Option<String>,
+    pub started_at: String,
+    pub finished_at: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ScanResult {
+    pub scan: NetworkScan,
+    pub findings: Vec<ScanFinding>,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct HardeningItem {
+    pub id: String,
+    pub title: String,
+    pub status: String,
+    pub detail: String,
+}
+
+pub async fn scan_scopes() -> Result<Vec<ScanScope>, ApiError> {
+    let payload: serde_json::Value = get("/v1/security/scopes").await?;
+    Ok(payload["items"].as_array().cloned().unwrap_or_default().into_iter()
+        .filter_map(|value| serde_json::from_value(value).ok()).collect())
+}
+
+pub async fn create_scan_scope(name: &str, cidr: &str, hours: Option<i64>) -> Result<(), ApiError> {
+    send_json(
+        "/v1/security/scopes",
+        "POST",
+        &serde_json::json!({
+            "name": name, "cidr": cidr, "authorized_hours": hours, "notes": "authorized by admin"
+        }),
+    )
+    .await
+}
+
+pub async fn disable_scan_scope(scope_id: &str) -> Result<(), ApiError> {
+    send_json_unit(
+        &format!("/v1/security/scopes/{scope_id}/disable"),
+        "POST",
+        &serde_json::json!({}),
+    )
+    .await
+}
+
+pub async fn run_scan(scope_id: &str, target: &str) -> Result<ScanResult, ApiError> {
+    send_json(
+        "/v1/security/scans",
+        "POST",
+        &serde_json::json!({"scope_id": scope_id, "target": target}),
+    )
+    .await
+}
+
+pub async fn scan_history() -> Result<Vec<NetworkScan>, ApiError> {
+    let payload: serde_json::Value = get("/v1/security/scans").await?;
+    Ok(payload["items"].as_array().cloned().unwrap_or_default().into_iter()
+        .filter_map(|value| serde_json::from_value(value).ok()).collect())
+}
+
+pub async fn hardening() -> Result<Vec<HardeningItem>, ApiError> {
+    let payload: serde_json::Value = get("/v1/security/hardening").await?;
+    Ok(payload["items"].as_array().cloned().unwrap_or_default().into_iter()
+        .filter_map(|value| serde_json::from_value(value).ok()).collect())
+}
+
 // --- quota alerts ------------------------------------------------------------------
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]

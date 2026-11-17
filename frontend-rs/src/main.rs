@@ -29,6 +29,8 @@ use crate::pages::activity::ActivityPage;
 use crate::pages::settings::SettingsPage;
 use crate::pages::media::MediaPage;
 use crate::pages::devices::DevicesPage;
+use crate::pages::hosting::HostingPage;
+use crate::pages::security::SecurityPage;
 use crate::theme::Theme;
 
 // Icon paths (served from public/assets/figma, same files as the React app).
@@ -70,6 +72,10 @@ pub enum Route {
     Monitor,
     #[at("/settings")]
     Settings,
+    #[at("/hosting")]
+    Hosting,
+    #[at("/security")]
+    Security,
     #[at("/:path*")]
     NotFound,
 }
@@ -172,6 +178,8 @@ fn app() -> Html {
                                 Route::Shared => html! { <SharedPage /> },
                                 Route::Activity => html! { <ActivityPage /> },
                                 Route::Settings => html! { <SettingsPage /> },
+                                Route::Hosting => html! { <HostingPage /> },
+                                Route::Security => html! { <SecurityPage /> },
                                 Route::Photos => html! { <MediaPage kind="photo" /> },
                                 Route::Videos => html! { <MediaPage kind="video" /> },
                                 Route::Devices => html! { <DevicesPage /> },

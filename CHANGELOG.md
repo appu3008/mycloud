@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.16.0 — All-in-one: hosting app manager + own-network auditing (2026-11-17)
+### Added
+- Hosting app manager (admin only): register static or proxy apps with
+  domain/path/port validation, enable/disable/delete, a small safe static
+  file writer, nginx config preview and user-owned config staging. Applying
+  config is an explicit sudo step (`deployment/apply-hosting.sh.example`);
+  the server never touches /etc/nginx.
+- Alembic migration `2c9f1a7b3d64` for `hosted_apps`, `scan_scopes`,
+  `network_scans`, `scan_findings` (verified: `alembic upgrade head`).
+- Security Lab (admin only): written authorization scopes (private CIDRs,
+  optional expiry, revocation), bounded TCP inventory scans restricted to
+  private targets inside an active scope, severity-labeled findings, scan
+  history and a real-config hardening checklist. Every action is audited.
+- Hosting and Security pages linked from Settings (Figma nav unchanged).
+
+### Fixed
+- E2E vault AES-GCM calls previously passed the algorithm object as the
+  *data* argument; encryption now passes plaintext with a proper AesGcmParams
+  algorithm object and decryption passes the envelope ciphertext.
+
+### Verified
+- `pytest`: 118 passed, 1 skipped; wasm check + trunk build green;
+  `/hosting` and `/security` screenshot-verified dark.
+
+
 ## 0.15.0 — Remote connectivity + single-origin production serving (2026-11-17)
 ### Added
 - Backend serves the built Yew app from the same origin via a 404 fallback

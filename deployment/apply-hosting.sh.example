@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+# Apply the nginx config staged by the MyCloud app manager.
+# Review the staged file first:
+#   cat ~/mycloud/database/hosting/staged/mycloud-apps.conf
+# Then run this script with sudo (it requires a password on this host).
+set -eu
+
+STAGED="$HOME/mycloud/database/hosting/staged/mycloud-apps.conf"
+test -f "$STAGED" || { echo "no staged config: $STAGED" >&2; exit 1; }
+
+sudo install -m 0644 "$STAGED" /etc/nginx/sites-available/mycloud-apps.conf
+sudo ln -sf /etc/nginx/sites-available/mycloud-apps.conf /etc/nginx/sites-enabled/mycloud-apps.conf
+sudo nginx -t
+sudo systemctl reload nginx
+echo "Applied. Static app roots stay under the user-owned data directory."

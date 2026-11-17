@@ -4,6 +4,7 @@ from .base import Base, TimestampMixin, utcnow
 from .file import ContentBlob, Favorite, File, FileVersion, Folder
 from .media import Album, AlbumFile, MediaMetadata, Share
 from .ops import ActivityEvent, AuditLog, Backup, BackupJob, SyncJob
+from .hosting import HostedApp, NetworkScan, ScanFinding, ScanScope
 from .session import Device, Session
 from .upload import UPLOAD_STATES, Upload, UploadChunk
 from .user import Notification, StorageQuota, User, new_id
@@ -23,8 +24,12 @@ __all__ = [
     "File",
     "FileVersion",
     "Folder",
+    "HostedApp",
     "MediaMetadata",
+    "NetworkScan",
     "Notification",
+    "ScanFinding",
+    "ScanScope",
     "Session",
     "Share",
     "StorageQuota",

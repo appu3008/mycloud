@@ -464,6 +464,16 @@ pub fn settings_page() -> Html {
 
             <section class="card recent-card">
                 <div class="recent-head">
+                    <span class="mono-label">{"All-in-one server"}</span>
+                </div>
+                <div class="settings-form">
+                    <a class="ghost-btn mono-label" href="/hosting">{"Hosting / app manager \u{2192}"}</a>
+                    <a class="ghost-btn mono-label" href="/security">{"Security lab / network audit \u{2192}"}</a>
+                </div>
+            </section>
+
+            <section class="card recent-card">
+                <div class="recent-head">
                     <span class="mono-label">{"End-to-end encrypted vault"}</span>
                     <span class="mono-label hint">{"optional \u{00B7} browser-only keys"}</span>
                 </div>

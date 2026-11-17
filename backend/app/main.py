@@ -34,6 +34,8 @@ from .api import media as media_api
 from .api import devices as devices_api
 from .api import alerts as alerts_api
 from .api import admin as admin_api
+from .api import hosting as hosting_api
+from .api import security as security_api
 from .core.config import PROJECT_ROOT, get_settings
 from .core.database import database_status
 
@@ -100,6 +102,8 @@ def register_routes(app: FastAPI) -> None:
     app.include_router(devices_api.sync_router, prefix="/api/v1")
     app.include_router(alerts_api.router, prefix="/api/v1")
     app.include_router(admin_api.router, prefix="/api/v1")
+    app.include_router(hosting_api.router, prefix="/api/v1")
+    app.include_router(security_api.router, prefix="/api/v1")
 
     @app.get("/", include_in_schema=False)
     def index() -> dict:
