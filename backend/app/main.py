@@ -30,6 +30,8 @@ from .api import uploads as uploads_api
 from .api import versions as versions_api
 from .api import media as media_api
 from .api import devices as devices_api
+from .api import alerts as alerts_api
+from .api import admin as admin_api
 from .core.config import get_settings
 from .core.database import database_status
 
@@ -94,6 +96,8 @@ def register_routes(app: FastAPI) -> None:
     app.include_router(media_api.albums_router, prefix="/api/v1")
     app.include_router(devices_api.devices_router, prefix="/api/v1")
     app.include_router(devices_api.sync_router, prefix="/api/v1")
+    app.include_router(alerts_api.router, prefix="/api/v1")
+    app.include_router(admin_api.router, prefix="/api/v1")
 
     @app.get("/", include_in_schema=False)
     def index() -> dict:

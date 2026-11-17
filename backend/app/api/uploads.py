@@ -181,6 +181,9 @@ def complete_upload(
         summary=f"Uploaded \u201c{file_row.name}\u201d",
         file_id=file_row.id,
     )
+    from ..services import alert_service
+
+    alert_service.evaluate_quota(db, user_id=user.id)
     db.commit()
     return FileInfo.model_validate(file_row)
 

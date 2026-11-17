@@ -14,11 +14,13 @@ pub fn monitor_page() -> Html {
     let health = use_state(|| None::<api::Health>);
     let usage = use_state(|| None::<api::StorageUsage>);
     let duplicates = use_state(|| None::<api::DuplicatesReport>);
+    let alerts = use_state(|| None::<api::AlertStatus>);
 
     {
         let health = health.clone();
         let usage = usage.clone();
         let duplicates = duplicates.clone();
+        let alerts = alerts.clone();
         use_effect_with((), move |_| {
             wasm_bindgen_futures::spawn_local(async move {
                 health.set(api::health().await.ok());
@@ -29,6 +31,9 @@ pub fn monitor_page() -> Html {
             wasm_bindgen_futures::spawn_local(async move {
                 duplicates.set(api::duplicates().await.ok());
             });
+            wasm_bindgen_futures::spawn_local(async move {
+                alerts.set(api::alerts().await.ok());
+            });
             || {}
         });
     }
@@ -36,6 +41,19 @@ pub fn monitor_page() -> Html {
     let health = (*health).clone();
     let usage = (*usage).clone();
     let duplicates = (*duplicates).clone();
+    let dismiss_alert = {
+        let alerts_handle = alerts.clone();
+        Callback::from(move |id: String| {
+            let alerts = alerts_handle.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                if api::dismiss_alert(&id).await.is_ok() {
+                    if let Some(status) = api::alerts().await.ok() {
+                        alerts.set(Some(status));
+                    }
+                }
+            });
+        })
+    };
 
     let disk_section = match health.as_ref() {
         Some(h) => {
@@ -110,6 +128,8 @@ pub fn monitor_page() -> Html {
         },
     };
 
+    let alerts = (*alerts).clone();
+
     let duplicates_section = match duplicates.as_ref() {
         Some(report) if report.groups.is_empty() => html! {
             <p class="dupes-empty">
@@ -157,6 +177,46 @@ pub fn monitor_page() -> Html {
                 </div>
                 {quota_section}
             </section>
+
+            {alerts.as_ref().map(|status| html! {
+                <section class="card recent-card">
+                    <div class="recent-head">
+                        <span class="mono-label">{"Quota alerts"}</span>
+                        <span class="mono-label hint">
+                            {format!("{}% used \u{00B7} warn at {}%", status.percent, status.threshold)}
+                        </span>
+                    </div>
+                    {if status.notifications.is_empty() {
+                        html! { <p class="recent-lede">{"No alerts. Your usage is below the warning threshold."}</p> }
+                    } else {
+                        html! {
+                            <ul class="recent-list activity-list">
+                                {for status.notifications.iter().map(|note| {
+                                    let dismiss = dismiss_alert.clone();
+                                    let id = note.id.clone();
+                                    let do_dismiss = Callback::from(move |_| dismiss.emit(id.clone()));
+                                    html! {
+                                        <li key={note.id.clone()} class="activity-row">
+                                            <span class="chip">{note.kind.clone()}</span>
+                                            <span class="activity-summary">
+                                                {format!("{} of {} ({}%) used",
+                                                    human_size(note.payload["used_bytes"].as_u64().unwrap_or(0)),
+                                                    human_size(note.payload["quota_bytes"].as_u64().unwrap_or(0)),
+                                                    note.payload["percent"].as_i64().unwrap_or(0))}
+                                            </span>
+                                            {(!note.is_read).then(|| html! {
+                                                <button class="ghost-btn mono-label" onclick={do_dismiss}>
+                                                    {"Dismiss"}
+                                                </button>
+                                            })}
+                                        </li>
+                                    }
+                                })}
+                            </ul>
+                        }
+                    }}
+                </section>
+            }).unwrap_or_default()}
 
             <section class="card recent-card">
                 <div class="recent-head">

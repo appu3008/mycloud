@@ -797,6 +797,64 @@ pub async fn delete_backup_job(job_id: &str) -> Result<(), ApiError> {
     send_json_unit(&format!("/v1/backups/jobs/{job_id}"), "DELETE", &serde_json::json!({})).await
 }
 
+// --- quota alerts ------------------------------------------------------------------
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct AlertNotification {
+    pub id: String,
+    #[serde(rename = "type")]
+    pub kind: String,
+    pub payload: serde_json::Value,
+    pub is_read: bool,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct AlertStatus {
+    pub used_bytes: u64,
+    pub quota_bytes: u64,
+    pub percent: i64,
+    pub threshold: i64,
+    pub triggered: bool,
+    pub notifications: Vec<AlertNotification>,
+}
+
+pub async fn alerts() -> Result<AlertStatus, ApiError> {
+    get("/v1/alerts").await
+}
+
+pub async fn dismiss_alert(notification_id: &str) -> Result<(), ApiError> {
+    send_json_unit(
+        &format!("/v1/alerts/dismiss?notification_id={notification_id}"),
+        "POST",
+        &serde_json::json!({}),
+    )
+    .await
+}
+
+// --- administration (admins only) ------------------------------------------------
+
+pub async fn admin_overview() -> Result<serde_json::Value, ApiError> {
+    get("/v1/admin/overview").await
+}
+
+pub async fn admin_users() -> Result<Vec<serde_json::Value>, ApiError> {
+    let payload: serde_json::Value = get("/v1/admin/users").await?;
+    Ok(payload["items"].as_array().cloned().unwrap_or_default())
+}
+
+pub async fn admin_audit() -> Result<Vec<serde_json::Value>, ApiError> {
+    let payload: serde_json::Value = get("/v1/admin/audit").await?;
+    Ok(payload["items"].as_array().cloned().unwrap_or_default())
+}
+
+pub async fn admin_update_user(
+    user_id: &str,
+    patch: &serde_json::Value,
+) -> Result<(), ApiError> {
+    send_json_unit(&format!("/v1/admin/users/{user_id}"), "PATCH", &patch).await
+}
+
 // --- auth --------------------------------------------------------------------
 
 pub async fn me() -> Result<MyCloudUser, ApiError> {

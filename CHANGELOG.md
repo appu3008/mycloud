@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.13.0 — Quota alerts + admin console (2026-11-17)
+### Added
+- Quota alerts: per-user threshold from `storage_quotas`, one unread
+  `quota_warning` notification generated on real upload/replace usage,
+  deduplicated until dismissed; `GET /api/v1/alerts` + dismiss endpoint.
+  Server Monitor shows current status and notifications with a dismiss action.
+- Admin console API (admins only): system overview, user list with per-user
+  usage, user admin-flag updates (self-lockout blocked), and audit feed.
+  Embedded in the existing Settings page so the Figma navigation is unchanged.
+
+### Verified
+- `pytest`: 99 passed (7 new: 3 alerts + 4 admin); wasm check + trunk build
+  green; `/settings` and `/monitor` screenshot-verified dark.
+
+
 ## 0.12.0 — Devices, sync and Android client path (2026-11-17)
 ### Added
 - Devices API: registration (untrusted by default), explicit trust,

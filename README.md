@@ -54,8 +54,8 @@ superseded by `frontend-rs/` and no longer part of the build.
 | 9 | Sharing | **done** |
 | 10 | Devices + sync | **done** |
 | 11 | Android backup client path | **done** (documented protocol + API; no APK shipped) |
-| 12 | Storage analytics + monitoring | **usage + duplicates done** (jobs/alerts pending) |
-| 13 | Administration + activity | **activity done** (admin console pending) |
+| 12 | Storage analytics + monitoring | **done** (usage, duplicates, quota alerts) |
+| 13 | Administration + activity | **done** |
 | 14 | Optional E2E encryption | pending |
 | 15 | Backup/recovery jobs | **done** (manual runs; cron not in-process yet) |
 | 16 | Security test suite | pending |

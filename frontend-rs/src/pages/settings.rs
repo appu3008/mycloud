@@ -16,6 +16,9 @@ pub fn settings_page() -> Html {
     let name = use_state(String::new);
     let retention = use_state(|| "3".to_string());
     let include_blobs = use_state(|| true);
+    let admin_overview = use_state(|| None::<serde_json::Value>);
+    let admin_users = use_state(Vec::<serde_json::Value>::new);
+    let admin_audit = use_state(Vec::<serde_json::Value>::new);
 
     let reload = {
         let jobs = jobs.clone();
@@ -33,10 +36,35 @@ pub fn settings_page() -> Html {
         }
     };
 
+    let reload_admin = {
+        let admin_overview = admin_overview.clone();
+        let admin_users = admin_users.clone();
+        let admin_audit = admin_audit.clone();
+        move || {
+            let admin_overview = admin_overview.clone();
+            let admin_users = admin_users.clone();
+            let admin_audit = admin_audit.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                // These endpoints 403 for non-admins; the section stays hidden.
+                if let Ok(value) = api::admin_overview().await {
+                    admin_overview.set(Some(value));
+                    if let Ok(users) = api::admin_users().await {
+                        admin_users.set(users);
+                    }
+                    if let Ok(audit) = api::admin_audit().await {
+                        admin_audit.set(audit);
+                    }
+                }
+            });
+        }
+    };
+
     {
         let reload = reload.clone();
+        let reload_admin = reload_admin.clone();
         use_effect_with((), move |_| {
             reload();
+            reload_admin();
             || {}
         });
     }
@@ -176,6 +204,109 @@ pub fn settings_page() -> Html {
         }
     }).collect::<Html>();
 
+    let toggle_admin = {
+        let busy = busy.clone();
+        let error = error.clone();
+        let notice = notice.clone();
+        let reload_admin = reload_admin.clone();
+        Callback::from(move |(user_id, patch): (String, serde_json::Value)| {
+            let busy = busy.clone();
+            let error = error.clone();
+            let notice = notice.clone();
+            let reload_admin = reload_admin.clone();
+            busy.set(true);
+            error.set(String::new());
+            wasm_bindgen_futures::spawn_local(async move {
+                match api::admin_update_user(&user_id, &patch).await {
+                    Ok(_) => {
+                        notice.set("User updated.".to_string());
+                        reload_admin();
+                    }
+                    Err(err) => error.set(err.to_string()),
+                }
+                busy.set(false);
+            });
+        })
+    };
+
+    let admin_view = match admin_overview.as_ref() {
+        Some(overview) => {
+            let user_rows: Html = admin_users.iter().map(|user| {
+                let toggle = toggle_admin.clone();
+                let id = user["id"].as_str().unwrap_or("").to_string();
+                let is_admin = user["is_admin"].as_bool().unwrap_or(false);
+                let id_toggle = id.clone();
+                let do_toggle = Callback::from(move |_| {
+                    toggle.emit((id_toggle.clone(), serde_json::json!({"is_admin": !is_admin})));
+                });
+                html! {
+                    <tr key={id.clone()} class="file-row">
+                        <td>{user["email"].as_str().unwrap_or("").to_string()}</td>
+                        <td>{user["display_name"].as_str().unwrap_or("").to_string()}</td>
+                        <td><span class="chip">{user["role"].as_str().unwrap_or("").to_string()}</span></td>
+                        <td class="dim-cell">{user["file_count"].to_string()}</td>
+                        <td class="dim-cell">{human_size(user["used_bytes"].as_u64().unwrap_or(0))}</td>
+                        <td class="row-actions">
+                            <button class="ghost-btn mono-label" disabled={*busy}
+                                    onclick={do_toggle}>
+                                {if is_admin { "Remove admin" } else { "Make admin" }}
+                            </button>
+                        </td>
+                    </tr>
+                }
+            }).collect::<Html>();
+            let audit_rows: Html = admin_audit.iter().take(12).map(|row| {
+                html! {
+                    <li key={row["id"].to_string()} class="activity-row">
+                        <span class="activity-when mono-label">
+                            {row["created_at"].as_str().unwrap_or("").to_string()}
+                        </span>
+                        <span class="chip">{row["action"].as_str().unwrap_or("").to_string()}</span>
+                        <span class="activity-summary">
+                            {row["actor_email"].as_str().unwrap_or("system").to_string()}
+                        </span>
+                    </li>
+                }
+            }).collect::<Html>();
+            html! {
+                <>
+                    <section class="card recent-card">
+                        <div class="recent-head">
+                            <span class="mono-label">{"Administration"}</span>
+                            <span class="mono-label hint">{"admins only"}</span>
+                        </div>
+                        <ul class="share-facts mono-label">
+                            <li>{format!("{} users", overview["users"])}</li>
+                            <li>{format!("{} files \u{00B7} {}", overview["files"], human_size(overview["bytes"].as_u64().unwrap_or(0)))}</li>
+                            <li>{format!("{} sessions \u{00B7} {} devices", overview["active_sessions"], overview["devices"])}</li>
+                            <li>{format!("{} audit events", overview["audit_events"])}</li>
+                        </ul>
+                        <table class="files-table">
+                            <thead>
+                                <tr>
+                                    <th><span class="mono-label">{"Email"}</span></th>
+                                    <th><span class="mono-label">{"Name"}</span></th>
+                                    <th><span class="mono-label">{"Role"}</span></th>
+                                    <th><span class="mono-label">{"Files"}</span></th>
+                                    <th><span class="mono-label">{"Used"}</span></th>
+                                    <th aria-label="actions"></th>
+                                </tr>
+                            </thead>
+                            <tbody>{user_rows}</tbody>
+                        </table>
+                    </section>
+                    <section class="card recent-card">
+                        <div class="recent-head">
+                            <span class="mono-label">{"Recent audit events"}</span>
+                        </div>
+                        <ul class="recent-list activity-list">{audit_rows}</ul>
+                    </section>
+                </>
+            }
+        }
+        None => html! {},
+    };
+
     html! {
         <div class="files-page">
             {eyebrow(None, "Settings")}
@@ -248,6 +379,7 @@ pub fn settings_page() -> Html {
                 </p>
             </section>
 
+            {admin_view}
             {page_tagline("Safety net first.")}
         </div>
     }
